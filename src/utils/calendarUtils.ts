@@ -1,4 +1,3 @@
-
 import { addDays, format, isSameDay, parseISO, startOfWeek, addWeeks, getDaysInMonth, startOfMonth } from 'date-fns';
 
 // Defining the Content Plan Item interface
@@ -103,23 +102,23 @@ export const generateInitialContentPlan = (): ContentPlanItem[] => {
   return contentPlan;
 };
 
-// Helper function to get purpose by content style
+// Helper function to get purpose by content style with enhanced descriptions
 const getPurposeByStyle = (style: string): string => {
   switch (style) {
     case 'knowledge':
-      return 'Share industry expertise and build authority';
+      return 'Build brand authority by sharing in-depth industry expertise and thought leadership content that positions DataHQ as a trusted expert';
     case 'guide':
-      return 'Educate audience on how to solve a specific problem';
+      return 'Provide practical step-by-step instructions that help audience solve specific data-related challenges, increasing engagement and demonstrating DataHQ\'s expertise';
     case 'infographic':
-      return 'Present complex data in visual, easily digestible format';
+      return 'Transform complex data into visually appealing and easily shareable graphics that improve comprehension and increase social sharing';
     case 'story':
-      return 'Connect with audience through relatable narrative';
+      return 'Create emotional connection with audience through relatable narratives that humanize data concepts and showcase real-world applications';
     case 'stats':
-      return 'Establish credibility through data-backed insights';
+      return 'Strengthen credibility by presenting compelling data-backed insights that support key business arguments and showcase DataHQ\'s analytical capabilities';
     case 'testimonial':
-      return 'Build trust through customer success stories';
+      return 'Build trust and overcome objections by highlighting customer success stories that validate DataHQ\'s solutions and demonstrate proven results';
     default:
-      return 'Engage with target audience';
+      return 'Connect with target audience through relevant content that addresses their needs and interests';
   }
 };
 

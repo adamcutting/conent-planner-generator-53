@@ -43,20 +43,20 @@ const ContentPlan: React.FC<ContentPlanProps> = ({
 
   const getContentTypeColor = (type: string): string => {
     switch(type) {
-      case 'blog': return 'bg-blue-100 text-blue-800';
+      case 'blog': return 'bg-datahq-purple/30 text-datahq-darkpurple';
       case 'social': return 'bg-green-100 text-green-800';
-      case 'email': return 'bg-orange-100 text-orange-800';
-      case 'infographic': return 'bg-pink-100 text-pink-800';
-      case 'landing-page': return 'bg-purple-100 text-purple-800';
+      case 'email': return 'bg-datahq-softpurple text-datahq-tertiary';
+      case 'infographic': return 'bg-accent/20 text-datahq-magenta';
+      case 'landing-page': return 'bg-secondary/20 text-secondary';
       default: return 'bg-gray-100 text-gray-800';
     }
   };
 
   const getContentStyleColor = (style: string): string => {
     switch(style) {
-      case 'knowledge': return 'bg-indigo-100 text-indigo-800';
+      case 'knowledge': return 'bg-datahq-purple/20 text-datahq-darkpurple';
       case 'guide': return 'bg-cyan-100 text-cyan-800';
-      case 'infographic': return 'bg-pink-100 text-pink-800';
+      case 'infographic': return 'bg-accent/20 text-datahq-magenta';
       case 'story': return 'bg-amber-100 text-amber-800';
       case 'stats': return 'bg-emerald-100 text-emerald-800';
       case 'testimonial': return 'bg-rose-100 text-rose-800';
@@ -87,9 +87,9 @@ const ContentPlan: React.FC<ContentPlanProps> = ({
                     <p className="text-sm text-muted-foreground mt-1">
                       {item.description}
                     </p>
-                    <div className="mt-2 text-sm text-gray-600 flex items-start">
-                      <InfoIcon className="h-4 w-4 mr-1 mt-0.5 flex-shrink-0 text-datahq-blue" />
-                      <span><strong>Purpose:</strong> {item.purpose}</span>
+                    <div className="mt-3 p-3 bg-datahq-softpurple/30 rounded-md border border-datahq-purple/20">
+                      <h4 className="text-sm font-medium text-datahq-darkpurple mb-1">Messaging Purpose:</h4>
+                      <p className="text-sm text-muted-foreground">{item.purpose}</p>
                     </div>
                   </div>
                   <div>
@@ -128,7 +128,7 @@ const ContentPlan: React.FC<ContentPlanProps> = ({
                     <Badge 
                       key={idx} 
                       variant="outline" 
-                      className="bg-slate-100 text-slate-800 text-xs flex items-center"
+                      className="bg-datahq-purple/10 text-datahq-tertiary text-xs flex items-center"
                     >
                       <TagIcon className="h-3 w-3 mr-1" />
                       {keyword}
