@@ -6,9 +6,11 @@ export interface ContentPlanItem {
   id: string;
   title: string;
   description: string;
+  purpose: string;
   dueDate: string;
   completed: boolean;
-  contentType: 'blog' | 'social' | 'email' | 'infographic';
+  contentType: 'blog' | 'social' | 'email' | 'infographic' | 'landing-page';
+  contentStyle: 'knowledge' | 'guide' | 'infographic' | 'story' | 'stats' | 'testimonial';
   keywords: string[];
 }
 
@@ -57,11 +59,16 @@ export const generateInitialContentPlan = (): ContentPlanItem[] => {
   const contentPlan: ContentPlanItem[] = [];
   
   // Example content types and their distribution - exclude video
-  const contentTypes: Array<{ type: 'blog' | 'social' | 'email' | 'infographic', keywords: string[] }> = [
-    { type: 'blog', keywords: ['data analytics', 'business intelligence'] },
-    { type: 'social', keywords: ['data visualization', 'data trends'] },
-    { type: 'email', keywords: ['data solutions', 'data management'] },
-    { type: 'infographic', keywords: ['statistics', 'data insights'] },
+  const contentTypes: Array<{ 
+    type: 'blog' | 'social' | 'email' | 'infographic' | 'landing-page', 
+    style: 'knowledge' | 'guide' | 'infographic' | 'story' | 'stats' | 'testimonial',
+    keywords: string[] 
+  }> = [
+    { type: 'blog', style: 'knowledge', keywords: ['data analytics', 'business intelligence'] },
+    { type: 'social', style: 'stats', keywords: ['data visualization', 'data trends'] },
+    { type: 'email', style: 'guide', keywords: ['data solutions', 'data management'] },
+    { type: 'infographic', style: 'infographic', keywords: ['statistics', 'data insights'] },
+    { type: 'landing-page', style: 'testimonial', keywords: ['data solutions', 'DataHQ services'] },
   ];
   
   let currentDate = new Date(startDate);
@@ -76,11 +83,13 @@ export const generateInitialContentPlan = (): ContentPlanItem[] => {
       
       contentPlan.push({
         id: `item-${contentIndex}`,
-        title: `Content ${contentType.type} #${contentIndex + 1}`,
+        title: `${contentType.type.charAt(0).toUpperCase() + contentType.type.slice(1)} #${contentIndex + 1}`,
         description: `Create a ${contentType.type} post about ${contentType.keywords[Math.floor(Math.random() * contentType.keywords.length)]}`,
+        purpose: getPurposeByStyle(contentType.style),
         dueDate: currentDate.toISOString(),
         completed: false,
         contentType: contentType.type,
+        contentStyle: contentType.style,
         keywords: [...contentType.keywords]
       });
       
@@ -94,11 +103,35 @@ export const generateInitialContentPlan = (): ContentPlanItem[] => {
   return contentPlan;
 };
 
+// Helper function to get purpose by content style
+const getPurposeByStyle = (style: string): string => {
+  switch (style) {
+    case 'knowledge':
+      return 'Share industry expertise and build authority';
+    case 'guide':
+      return 'Educate audience on how to solve a specific problem';
+    case 'infographic':
+      return 'Present complex data in visual, easily digestible format';
+    case 'story':
+      return 'Connect with audience through relatable narrative';
+    case 'stats':
+      return 'Establish credibility through data-backed insights';
+    case 'testimonial':
+      return 'Build trust through customer success stories';
+    default:
+      return 'Engage with target audience';
+  }
+};
+
 // Function to generate a new content plan based on keywords
 export const generateContentPlanFromKeywords = (keywords: string[], startDate: Date): ContentPlanItem[] => {
   const contentPlan: ContentPlanItem[] = [];
-  const contentTypes: Array<'blog' | 'social' | 'email' | 'infographic'> = [
-    'blog', 'social', 'email', 'infographic'
+  const contentTypes: Array<'blog' | 'social' | 'email' | 'infographic' | 'landing-page'> = [
+    'blog', 'social', 'email', 'infographic', 'landing-page'
+  ];
+  
+  const contentStyles: Array<'knowledge' | 'guide' | 'infographic' | 'story' | 'stats' | 'testimonial'> = [
+    'knowledge', 'guide', 'infographic', 'story', 'stats', 'testimonial'
   ];
   
   // Distribution of content types (how many of each type per month)
@@ -106,7 +139,8 @@ export const generateContentPlanFromKeywords = (keywords: string[], startDate: D
     blog: 8,
     social: 12,
     email: 4,
-    infographic: 2
+    infographic: 2,
+    'landing-page': 2
   };
   
   let contentId = 1;
@@ -123,14 +157,17 @@ export const generateContentPlanFromKeywords = (keywords: string[], startDate: D
       }
       
       const randomKeyword = keywords[Math.floor(Math.random() * keywords.length)];
+      const randomStyle = contentStyles[Math.floor(Math.random() * contentStyles.length)];
       
       contentPlan.push({
         id: `item-${contentId++}`,
-        title: `${type.charAt(0).toUpperCase() + type.slice(1)}: ${randomKeyword}`,
-        description: `Create a ${type} post about ${randomKeyword}`,
+        title: generateTitle(type, randomKeyword, randomStyle),
+        description: `Create a ${type} about ${randomKeyword}`,
+        purpose: getPurposeByStyle(randomStyle),
         dueDate: currentDate.toISOString(),
         completed: false,
         contentType: type,
+        contentStyle: randomStyle,
         keywords: [randomKeyword]
       });
       
@@ -145,6 +182,58 @@ export const generateContentPlanFromKeywords = (keywords: string[], startDate: D
   contentPlan.sort((a, b) => new Date(a.dueDate).getTime() - new Date(b.dueDate).getTime());
   
   return contentPlan;
+};
+
+// Generate a title based on content type, keyword and style
+const generateTitle = (
+  type: 'blog' | 'social' | 'email' | 'infographic' | 'landing-page', 
+  keyword: string, 
+  style: 'knowledge' | 'guide' | 'infographic' | 'story' | 'stats' | 'testimonial'
+): string => {
+  const titleTemplates = {
+    blog: {
+      knowledge: `Understanding ${keyword}: Industry Insights`,
+      guide: `The Ultimate Guide to ${keyword}`,
+      story: `How We Transformed Our Business with ${keyword}`,
+      stats: `${keyword} in Numbers: Key Statistics You Should Know`,
+      testimonial: `Success Story: How ${keyword} Changed Our Client's Business`,
+      infographic: `${keyword} Explained: Visual Guide`
+    },
+    social: {
+      knowledge: `#DidYouKnow about ${keyword}?`,
+      guide: `Quick Tips for ${keyword}`,
+      story: `Our Journey with ${keyword}`,
+      stats: `${keyword} Facts You Won't Believe`,
+      testimonial: `Client Spotlight: ${keyword} Success`,
+      infographic: `${keyword} At A Glance`
+    },
+    email: {
+      knowledge: `${keyword} Insights: Latest Trends`,
+      guide: `${keyword} Mastery in 5 Steps`,
+      story: `${keyword} Case Study: Behind the Scenes`,
+      stats: `${keyword} Report: Data & Insights`,
+      testimonial: `${keyword} Champions: Client Showcase`,
+      infographic: `Visual Guide: ${keyword} Explained`
+    },
+    infographic: {
+      knowledge: `${keyword} Visualized`,
+      guide: `${keyword} Step-by-Step`,
+      story: `The Evolution of ${keyword}`,
+      stats: `${keyword} By The Numbers`,
+      testimonial: `${keyword} Impact: Client Results`,
+      infographic: `${keyword} Simplified`
+    },
+    'landing-page': {
+      knowledge: `${keyword} Solutions by DataHQ`,
+      guide: `Mastering ${keyword} with DataHQ`,
+      story: `${keyword} Journey: Partner with DataHQ`,
+      stats: `${keyword} ROI: What DataHQ Delivers`,
+      testimonial: `${keyword} Success Stories: DataHQ Clients`,
+      infographic: `${keyword} Expertise: Why Choose DataHQ`
+    }
+  };
+
+  return titleTemplates[type][style] || `${type}: ${keyword}`;
 };
 
 // Format date for display

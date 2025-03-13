@@ -3,7 +3,7 @@ import React, { useState, useEffect } from 'react';
 import { format, addMonths, subMonths, isSameMonth, isToday, parseISO, isSameDay } from 'date-fns';
 import { CalendarIcon, ChevronLeftIcon, ChevronRightIcon } from 'lucide-react';
 import { Button } from "@/components/ui/button";
-import { ContentPlanItem, generateCalendarDays, formatDate } from '@/utils/calendarUtils';
+import { ContentPlanItem, generateCalendarDays, formatDate, isWorkingDay } from '@/utils/calendarUtils';
 
 interface CalendarViewProps {
   contentPlan: ContentPlanItem[];
@@ -68,21 +68,21 @@ const CalendarView: React.FC<CalendarViewProps> = ({ contentPlan, onSelectDate, 
           const isCurrentMonth = isSameMonth(day, currentMonth);
           const isSelected = isSameDay(day, selectedDate);
           const contentCount = hasContentItems(day);
-          const isWeekend = day.getDay() === 0 || day.getDay() === 6; // 0 is Sunday, 6 is Saturday
+          const isWeekend = !isWorkingDay(day);
           
           return (
             <div
               key={i}
               onClick={() => handleDayClick(day)}
               className={`
-                h-20 p-1 rounded-md transition-all duration-250 cursor-pointer relative
-                ${isCurrentMonth ? '' : 'text-muted-foreground/50'}
+                h-24 p-1 rounded-md transition-all duration-250 cursor-pointer relative
+                ${isCurrentMonth ? '' : 'text-muted-foreground/30'}
                 ${isSelected ? 'bg-primary/10 shadow-sm' : 'hover:bg-secondary'}
                 ${isToday(day) ? 'border border-primary/50' : ''}
                 ${isWeekend ? 'bg-gray-100' : ''}
               `}
             >
-              <div className="text-xs font-medium text-right p-1">
+              <div className={`text-xs font-medium text-right p-1 ${isWeekend ? 'text-muted-foreground/50' : ''}`}>
                 {format(day, 'd')}
               </div>
               

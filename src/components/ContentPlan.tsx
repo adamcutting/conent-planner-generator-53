@@ -1,7 +1,7 @@
 
 import React, { useState } from 'react';
 import { format, parseISO, isSameDay } from 'date-fns';
-import { CheckCircle, Clock, Edit, CheckIcon, Trash2, TagIcon } from 'lucide-react';
+import { CheckCircle, Clock, Edit, TagIcon, Trash2, FileTextIcon, InfoIcon, LayoutIcon } from 'lucide-react';
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { ContentPlanItem } from '@/utils/calendarUtils';
@@ -45,9 +45,21 @@ const ContentPlan: React.FC<ContentPlanProps> = ({
     switch(type) {
       case 'blog': return 'bg-blue-100 text-blue-800';
       case 'social': return 'bg-green-100 text-green-800';
-      case 'video': return 'bg-purple-100 text-purple-800';
       case 'email': return 'bg-orange-100 text-orange-800';
       case 'infographic': return 'bg-pink-100 text-pink-800';
+      case 'landing-page': return 'bg-purple-100 text-purple-800';
+      default: return 'bg-gray-100 text-gray-800';
+    }
+  };
+
+  const getContentStyleColor = (style: string): string => {
+    switch(style) {
+      case 'knowledge': return 'bg-indigo-100 text-indigo-800';
+      case 'guide': return 'bg-cyan-100 text-cyan-800';
+      case 'infographic': return 'bg-pink-100 text-pink-800';
+      case 'story': return 'bg-amber-100 text-amber-800';
+      case 'stats': return 'bg-emerald-100 text-emerald-800';
+      case 'testimonial': return 'bg-rose-100 text-rose-800';
       default: return 'bg-gray-100 text-gray-800';
     }
   };
@@ -75,6 +87,10 @@ const ContentPlan: React.FC<ContentPlanProps> = ({
                     <p className="text-sm text-muted-foreground mt-1">
                       {item.description}
                     </p>
+                    <div className="mt-2 text-sm text-gray-600 flex items-start">
+                      <InfoIcon className="h-4 w-4 mr-1 mt-0.5 flex-shrink-0 text-datahq-blue" />
+                      <span><strong>Purpose:</strong> {item.purpose}</span>
+                    </div>
                   </div>
                   <div>
                     <Button 
@@ -91,45 +107,52 @@ const ContentPlan: React.FC<ContentPlanProps> = ({
                   </div>
                 </div>
                 
-                <div className="flex items-center justify-between mt-3">
-                  <div className="flex items-center space-x-2">
-                    <Badge 
-                      variant="outline"
-                      className={`text-xs ${getContentTypeColor(item.contentType)}`}
-                    >
-                      {item.contentType}
-                    </Badge>
-                    
-                    {item.keywords.slice(0, 2).map((keyword, idx) => (
-                      <Badge 
-                        key={idx} 
-                        variant="outline" 
-                        className="bg-slate-100 text-slate-800 text-xs flex items-center"
-                      >
-                        <TagIcon className="h-3 w-3 mr-1" />
-                        {keyword}
-                      </Badge>
-                    ))}
-                  </div>
+                <div className="flex flex-wrap gap-2 mt-3">
+                  <Badge 
+                    variant="outline"
+                    className={`text-xs flex items-center ${getContentTypeColor(item.contentType)}`}
+                  >
+                    <FileTextIcon className="h-3 w-3 mr-1" />
+                    {item.contentType.replace('-', ' ')}
+                  </Badge>
                   
-                  <div className="flex space-x-1">
-                    <Button 
-                      variant="ghost" 
-                      size="icon"
-                      className="h-8 w-8"
-                      onClick={() => onEditContent(item)}
+                  <Badge 
+                    variant="outline"
+                    className={`text-xs flex items-center ${getContentStyleColor(item.contentStyle)}`}
+                  >
+                    <LayoutIcon className="h-3 w-3 mr-1" />
+                    {item.contentStyle}
+                  </Badge>
+                  
+                  {item.keywords.map((keyword, idx) => (
+                    <Badge 
+                      key={idx} 
+                      variant="outline" 
+                      className="bg-slate-100 text-slate-800 text-xs flex items-center"
                     >
-                      <Edit className="h-4 w-4" />
-                    </Button>
-                    <Button 
-                      variant="ghost" 
-                      size="icon"
-                      className="h-8 w-8 text-destructive hover:text-destructive"
-                      onClick={() => onDeleteItem(item.id)}
-                    >
-                      <Trash2 className="h-4 w-4" />
-                    </Button>
-                  </div>
+                      <TagIcon className="h-3 w-3 mr-1" />
+                      {keyword}
+                    </Badge>
+                  ))}
+                </div>
+                
+                <div className="flex justify-end space-x-1 mt-3">
+                  <Button 
+                    variant="ghost" 
+                    size="icon"
+                    className="h-8 w-8"
+                    onClick={() => onEditContent(item)}
+                  >
+                    <Edit className="h-4 w-4" />
+                  </Button>
+                  <Button 
+                    variant="ghost" 
+                    size="icon"
+                    className="h-8 w-8 text-destructive hover:text-destructive"
+                    onClick={() => onDeleteItem(item.id)}
+                  >
+                    <Trash2 className="h-4 w-4" />
+                  </Button>
                 </div>
               </div>
             ))}
@@ -155,12 +178,20 @@ const ContentPlan: React.FC<ContentPlanProps> = ({
                       Due: {format(parseISO(item.dueDate), 'MMM d, yyyy')}
                     </p>
                   </div>
-                  <Badge 
-                    variant="outline"
-                    className={`text-xs ${getContentTypeColor(item.contentType)}`}
-                  >
-                    {item.contentType}
-                  </Badge>
+                  <div className="flex space-x-1">
+                    <Badge 
+                      variant="outline"
+                      className={`text-xs ${getContentTypeColor(item.contentType)}`}
+                    >
+                      {item.contentType.replace('-', ' ')}
+                    </Badge>
+                    <Badge 
+                      variant="outline"
+                      className={`text-xs ${getContentStyleColor(item.contentStyle)}`}
+                    >
+                      {item.contentStyle}
+                    </Badge>
+                  </div>
                 </div>
               </div>
             ))}

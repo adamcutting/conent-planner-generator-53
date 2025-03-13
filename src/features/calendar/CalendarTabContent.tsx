@@ -33,9 +33,11 @@ const CalendarTabContent: React.FC<CalendarTabContentProps> = ({
       id: `new-${Date.now()}`,
       title: `New Content Item`,
       description: `Add description`,
+      purpose: 'Engage with target audience',
       dueDate: selectedDate.toISOString(),
       completed: false,
       contentType: 'blog',
+      contentStyle: 'knowledge',
       keywords: ['content']
     };
     
@@ -48,7 +50,7 @@ const CalendarTabContent: React.FC<CalendarTabContentProps> = ({
 
   return (
     <div className="flex-1 grid grid-cols-1 lg:grid-cols-7 gap-6">
-      <div className="lg:col-span-4 h-[calc(100vh-250px)]">
+      <div className="lg:col-span-4 h-[calc(100vh-220px)]">
         <CalendarView 
           contentPlan={contentPlan}
           onSelectDate={setSelectedDate}
@@ -67,7 +69,7 @@ const CalendarTabContent: React.FC<CalendarTabContentProps> = ({
         </div>
       </div>
       
-      <div className="lg:col-span-3 max-h-[calc(100vh-250px)] overflow-y-auto">
+      <div className="lg:col-span-3 max-h-[calc(100vh-220px)] overflow-y-auto">
         <ContentPlan 
           contentPlan={contentPlan}
           selectedDate={selectedDate}
