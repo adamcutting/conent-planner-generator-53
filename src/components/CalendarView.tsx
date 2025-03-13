@@ -39,10 +39,10 @@ const CalendarView: React.FC<CalendarViewProps> = ({ contentPlan, onSelectDate, 
   };
 
   return (
-    <div className="glass-panel rounded-xl p-4 animate-fade-in">
+    <div className="glass-panel rounded-xl p-4 animate-fade-in h-full">
       <div className="flex justify-between items-center mb-6">
-        <h2 className="text-xl font-semibold flex items-center">
-          <CalendarIcon className="mr-2 h-5 w-5" />
+        <h2 className="text-xl font-semibold flex items-center text-datahq-charcoal">
+          <CalendarIcon className="mr-2 h-5 w-5 text-datahq-blue" />
           {format(currentMonth, 'MMMM yyyy')}
         </h2>
         <div className="flex space-x-2">
@@ -68,16 +68,18 @@ const CalendarView: React.FC<CalendarViewProps> = ({ contentPlan, onSelectDate, 
           const isCurrentMonth = isSameMonth(day, currentMonth);
           const isSelected = isSameDay(day, selectedDate);
           const contentCount = hasContentItems(day);
+          const isWeekend = day.getDay() === 0 || day.getDay() === 6; // 0 is Sunday, 6 is Saturday
           
           return (
             <div
               key={i}
               onClick={() => handleDayClick(day)}
               className={`
-                h-16 p-1 rounded-md transition-all duration-250 cursor-pointer relative
+                h-20 p-1 rounded-md transition-all duration-250 cursor-pointer relative
                 ${isCurrentMonth ? '' : 'text-muted-foreground/50'}
                 ${isSelected ? 'bg-primary/10 shadow-sm' : 'hover:bg-secondary'}
                 ${isToday(day) ? 'border border-primary/50' : ''}
+                ${isWeekend ? 'bg-gray-100' : ''}
               `}
             >
               <div className="text-xs font-medium text-right p-1">
@@ -88,7 +90,7 @@ const CalendarView: React.FC<CalendarViewProps> = ({ contentPlan, onSelectDate, 
                 <div className="absolute bottom-1 left-1 right-1 flex justify-center">
                   <div className={`
                     text-xs px-2 py-0.5 rounded-full
-                    ${isSelected ? 'bg-primary text-white' : 'bg-muted text-foreground'}
+                    ${isSelected ? 'bg-datahq-blue text-white' : 'bg-muted text-foreground'}
                   `}>
                     {contentCount} item{contentCount !== 1 ? 's' : ''}
                   </div>

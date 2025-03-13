@@ -1,3 +1,4 @@
+
 import { addDays, format, isSameDay, parseISO, startOfWeek, addWeeks, getDaysInMonth, startOfMonth } from 'date-fns';
 
 // Defining the Content Plan Item interface
@@ -7,7 +8,7 @@ export interface ContentPlanItem {
   description: string;
   dueDate: string;
   completed: boolean;
-  contentType: 'blog' | 'social' | 'video' | 'email' | 'infographic';
+  contentType: 'blog' | 'social' | 'email' | 'infographic';
   keywords: string[];
 }
 
@@ -34,38 +35,60 @@ export const isItemDueOnDate = (item: ContentPlanItem, date: Date): boolean => {
   return isSameDay(parseISO(item.dueDate), date);
 };
 
+// Helper function to check if a date is a working day (Monday-Friday)
+export const isWorkingDay = (date: Date): boolean => {
+  const day = date.getDay();
+  // 0 is Sunday, 6 is Saturday
+  return day !== 0 && day !== 6;
+};
+
+// Function to find the next working day
+export const getNextWorkingDay = (date: Date): Date => {
+  let nextDay = new Date(date);
+  do {
+    nextDay = addDays(nextDay, 1);
+  } while (!isWorkingDay(nextDay));
+  return nextDay;
+};
+
 // Function to generate dummy content plan based on days from start
 export const generateInitialContentPlan = (): ContentPlanItem[] => {
   const startDate = getStartDate();
   const contentPlan: ContentPlanItem[] = [];
   
-  // Example content types and their distribution
-  const contentTypes: Array<{ type: 'blog' | 'social' | 'video' | 'email' | 'infographic', keywords: string[] }> = [
+  // Example content types and their distribution - exclude video
+  const contentTypes: Array<{ type: 'blog' | 'social' | 'email' | 'infographic', keywords: string[] }> = [
     { type: 'blog', keywords: ['data analytics', 'business intelligence'] },
     { type: 'social', keywords: ['data visualization', 'data trends'] },
     { type: 'email', keywords: ['data solutions', 'data management'] },
-    { type: 'video', keywords: ['data tutorials', 'case studies'] },
     { type: 'infographic', keywords: ['statistics', 'data insights'] },
   ];
   
-  // Generate content items for 90 days
-  for (let i = 0; i < 90; i++) {
-    // Only add content on certain days to keep calendar realistic
-    if (i % 3 === 0) { // Every 3rd day
+  let currentDate = new Date(startDate);
+  let contentIndex = 0;
+  
+  // Generate content items for 90 days, but only on working days
+  while (contentIndex < 30) { // Reduced number of items to 30 for better spacing
+    if (isWorkingDay(currentDate)) {
+      // Only add content on working days
       const contentTypeIndex = Math.floor(Math.random() * contentTypes.length);
       const contentType = contentTypes[contentTypeIndex];
-      const dueDate = addDays(startDate, i);
       
       contentPlan.push({
-        id: `item-${i}`,
-        title: `Content ${contentType.type} #${Math.floor(i/3) + 1}`,
+        id: `item-${contentIndex}`,
+        title: `Content ${contentType.type} #${contentIndex + 1}`,
         description: `Create a ${contentType.type} post about ${contentType.keywords[Math.floor(Math.random() * contentType.keywords.length)]}`,
-        dueDate: dueDate.toISOString(),
+        dueDate: currentDate.toISOString(),
         completed: false,
         contentType: contentType.type,
         keywords: [...contentType.keywords]
       });
+      
+      contentIndex++;
     }
+    
+    // Move to the next day
+    currentDate = addDays(currentDate, 1);
   }
   
   return contentPlan;
@@ -74,40 +97,47 @@ export const generateInitialContentPlan = (): ContentPlanItem[] => {
 // Function to generate a new content plan based on keywords
 export const generateContentPlanFromKeywords = (keywords: string[], startDate: Date): ContentPlanItem[] => {
   const contentPlan: ContentPlanItem[] = [];
-  const contentTypes: Array<'blog' | 'social' | 'video' | 'email' | 'infographic'> = [
-    'blog', 'social', 'video', 'email', 'infographic'
+  const contentTypes: Array<'blog' | 'social' | 'email' | 'infographic'> = [
+    'blog', 'social', 'email', 'infographic'
   ];
   
   // Distribution of content types (how many of each type per month)
   const distribution = {
     blog: 8,
     social: 12,
-    video: 4,
     email: 4,
     infographic: 2
   };
   
   let contentId = 1;
+  let currentDate = new Date(startDate);
   
-  // Generate content items for the next 90 days
+  // Generate content items for each type according to the distribution
   for (let type of contentTypes) {
     const count = distribution[type];
     
     for (let i = 0; i < count; i++) {
-      // Distribute evenly across 90 days
-      const dayOffset = Math.floor((i * 90) / count) + Math.floor(Math.random() * 3);
-      const dueDate = addDays(startDate, dayOffset);
+      // Make sure we only schedule on working days
+      while (!isWorkingDay(currentDate)) {
+        currentDate = addDays(currentDate, 1);
+      }
+      
       const randomKeyword = keywords[Math.floor(Math.random() * keywords.length)];
       
       contentPlan.push({
         id: `item-${contentId++}`,
         title: `${type.charAt(0).toUpperCase() + type.slice(1)}: ${randomKeyword}`,
         description: `Create a ${type} post about ${randomKeyword}`,
-        dueDate: dueDate.toISOString(),
+        dueDate: currentDate.toISOString(),
         completed: false,
         contentType: type,
         keywords: [randomKeyword]
       });
+      
+      // Add a few working days between content items to space them out
+      for (let j = 0; j < 2; j++) {
+        currentDate = getNextWorkingDay(currentDate);
+      }
     }
   }
   

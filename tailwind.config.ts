@@ -53,6 +53,13 @@ export default {
 					DEFAULT: 'hsl(var(--card))',
 					foreground: 'hsl(var(--card-foreground))'
 				},
+				datahq: {
+					blue: '#1EAEDB',
+					darkblue: '#33C3F0',
+					charcoal: '#403E43',
+					darkcharcoal: '#221F26',
+					gray: '#8A898C',
+				},
 			},
 			borderRadius: {
 				lg: 'var(--radius)',
