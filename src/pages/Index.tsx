@@ -1,4 +1,3 @@
-
 import React, { useState, useEffect } from 'react';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Dialog, DialogContent } from "@/components/ui/dialog";
@@ -7,7 +6,7 @@ import { useToast } from "@/components/ui/use-toast";
 import { 
   CalendarIcon, 
   BellIcon, 
-  SparkleFill, 
+  Sparkles, 
   PencilIcon, 
   PlusCircle,
   Settings,
@@ -35,7 +34,6 @@ const Index = () => {
   const [showContentGenerator, setShowContentGenerator] = useState(false);
   const [editingContentItem, setEditingContentItem] = useState<ContentPlanItem | undefined>(undefined);
   
-  // Initialize content plan
   useEffect(() => {
     const savedPlan = loadContentPlan();
     if (savedPlan) {
@@ -47,7 +45,6 @@ const Index = () => {
     }
   }, []);
   
-  // Save content plan whenever it changes
   useEffect(() => {
     if (contentPlan.length > 0) {
       saveContentPlan(contentPlan);
@@ -76,7 +73,6 @@ const Index = () => {
   };
   
   const handleGeneratePlan = (keywords: string[]) => {
-    // Get the current start date (for content continuity)
     const startDate = new Date();
     
     const newPlan = generateContentPlanFromKeywords(keywords, startDate);
@@ -87,7 +83,6 @@ const Index = () => {
       description: `Created a new 90-day content plan with ${newPlan.length} items`,
     });
     
-    // Switch to calendar view
     setActiveTab('calendar');
   };
   
@@ -98,7 +93,6 @@ const Index = () => {
   
   const handleSaveContent = (title: string, content: string) => {
     if (editingContentItem) {
-      // Update existing item
       const updatedItem = {
         ...editingContentItem,
         title,
@@ -107,7 +101,6 @@ const Index = () => {
       
       handleUpdateItem(updatedItem);
     } else {
-      // Create new content item
       const newItem: ContentPlanItem = {
         id: `new-${Date.now()}`,
         title,
@@ -151,7 +144,7 @@ const Index = () => {
               Calendar
             </TabsTrigger>
             <TabsTrigger value="generate" className="flex items-center">
-              <SparkleFill className="mr-2 h-4 w-4" />
+              <Sparkles className="mr-2 h-4 w-4" />
               Generate Plan
             </TabsTrigger>
           </TabsList>
@@ -235,14 +228,12 @@ const Index = () => {
         </TabsContent>
       </Tabs>
       
-      {/* Email Settings Dialog */}
       <Dialog open={showEmailSettings} onOpenChange={setShowEmailSettings}>
         <DialogContent className="sm:max-w-md">
           <EmailSettings onClose={() => setShowEmailSettings(false)} />
         </DialogContent>
       </Dialog>
       
-      {/* Content Generator Dialog */}
       <Dialog open={showContentGenerator} onOpenChange={setShowContentGenerator}>
         <DialogContent className="sm:max-w-[800px] p-0">
           <ContentGenerator 
