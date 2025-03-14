@@ -4,7 +4,6 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
 import { Label } from "@/components/ui/label";
-import { Checkbox } from "@/components/ui/checkbox";
 import { Card, CardContent, CardHeader, CardTitle, CardDescription, CardFooter } from "@/components/ui/card";
 import { SparklesIcon, Code, Upload, Wand2, Send } from 'lucide-react';
 import { useToast } from "@/components/ui/use-toast";
@@ -153,13 +152,6 @@ const EmailTemplateDesigner: React.FC<EmailTemplateDesignerProps> = ({ onClose }
   return (
     <div className="max-w-4xl mx-auto">
       <div className="mb-8 text-center">
-        <div className="flex justify-center mb-4">
-          <img 
-            src="/logo.svg" 
-            alt="DataHQ Logo" 
-            className="h-16 w-auto"
-          />
-        </div>
         <h2 className="text-2xl font-bold text-foreground mb-2">AI Email Template Designer</h2>
         <p className="text-muted-foreground">
           Create professional HTML email templates for your marketing campaigns using AI.
@@ -167,7 +159,7 @@ const EmailTemplateDesigner: React.FC<EmailTemplateDesignerProps> = ({ onClose }
         </p>
       </div>
 
-      <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+      <div className="flex flex-col gap-6">
         <Card>
           <CardHeader>
             <CardTitle className="flex items-center">
@@ -255,18 +247,18 @@ const EmailTemplateDesigner: React.FC<EmailTemplateDesignerProps> = ({ onClose }
           </CardFooter>
         </Card>
 
-        <Card>
-          <CardHeader>
-            <CardTitle className="flex items-center">
-              <Send className="mr-2 h-5 w-5 text-primary" />
-              Email Preview
-            </CardTitle>
-            <CardDescription>
-              Preview your AI-generated email template
-            </CardDescription>
-          </CardHeader>
-          <CardContent>
-            {generatedTemplate ? (
+        {generatedTemplate ? (
+          <Card>
+            <CardHeader>
+              <CardTitle className="flex items-center">
+                <Send className="mr-2 h-5 w-5 text-primary" />
+                Email Preview
+              </CardTitle>
+              <CardDescription>
+                Preview your AI-generated email template
+              </CardDescription>
+            </CardHeader>
+            <CardContent>
               <div className="space-y-4">
                 <div className="flex justify-between items-center">
                   <div>
@@ -319,26 +311,37 @@ const EmailTemplateDesigner: React.FC<EmailTemplateDesignerProps> = ({ onClose }
                   </div>
                 )}
               </div>
-            ) : (
+            </CardContent>
+            <CardFooter className="justify-end">
+              <Button variant="outline" onClick={() => window.open('mailto:?subject=' + encodeURIComponent(generatedTemplate.subject))}>
+                Test in Email Client
+              </Button>
+            </CardFooter>
+          </Card>
+        ) : (
+          <Card>
+            <CardHeader>
+              <CardTitle className="flex items-center">
+                <Send className="mr-2 h-5 w-5 text-primary" />
+                Email Preview
+              </CardTitle>
+              <CardDescription>
+                Preview your AI-generated email template
+              </CardDescription>
+            </CardHeader>
+            <CardContent>
               <div className="h-[400px] flex items-center justify-center flex-col text-center border rounded-md p-6">
                 <Wand2 className="h-12 w-12 text-muted-foreground/50 mb-4" />
                 <p className="text-muted-foreground">
                   Your AI-generated email template will appear here
                 </p>
                 <p className="text-sm text-muted-foreground">
-                  Fill in the form on the left and click "Generate Email Template"
+                  Fill in the form above and click "Generate Email Template"
                 </p>
               </div>
-            )}
-          </CardContent>
-          <CardFooter className="justify-end">
-            {generatedTemplate && (
-              <Button variant="outline" onClick={() => window.open('mailto:?subject=' + encodeURIComponent(generatedTemplate.subject))}>
-                Test in Email Client
-              </Button>
-            )}
-          </CardFooter>
-        </Card>
+            </CardContent>
+          </Card>
+        )}
       </div>
     </div>
   );
