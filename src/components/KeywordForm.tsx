@@ -176,53 +176,51 @@ const KeywordForm: React.FC<KeywordFormProps> = ({ onGeneratePlan }) => {
             </div>
           </div>
           
-          <div className="space-y-4">
-            <div className="flex items-center space-x-2">
-              <Checkbox 
-                id="weekends" 
-                checked={includeWeekends} 
-                onCheckedChange={(checked) => setIncludeWeekends(checked === true)}
-              />
-              <Label htmlFor="weekends" className="cursor-pointer">
-                Include weekends in plan
-              </Label>
-            </div>
+          <div>
+            <Label>Content types to include</Label>
+            <Select onValueChange={handleContentTypeChange}>
+              <SelectTrigger className="w-full mt-1.5">
+                <SelectValue placeholder="Select content types" />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectGroup>
+                  <SelectLabel>Content Types</SelectLabel>
+                  <SelectItem value="all">All content types</SelectItem>
+                  <SelectItem value="blog">Blog posts</SelectItem>
+                  <SelectItem value="social">Social media posts</SelectItem>
+                  <SelectItem value="email">Email newsletters</SelectItem>
+                  <SelectItem value="infographic">Infographics</SelectItem>
+                  <SelectItem value="landing-page">Landing pages</SelectItem>
+                </SelectGroup>
+              </SelectContent>
+            </Select>
             
-            <div>
-              <Label>Content types to include</Label>
-              <Select onValueChange={handleContentTypeChange}>
-                <SelectTrigger className="w-full mt-1.5">
-                  <SelectValue placeholder="Select content types" />
-                </SelectTrigger>
-                <SelectContent>
-                  <SelectGroup>
-                    <SelectLabel>Content Types</SelectLabel>
-                    <SelectItem value="all">All content types</SelectItem>
-                    <SelectItem value="blog">Blog posts</SelectItem>
-                    <SelectItem value="social">Social media posts</SelectItem>
-                    <SelectItem value="email">Email newsletters</SelectItem>
-                    <SelectItem value="infographic">Infographics</SelectItem>
-                    <SelectItem value="landing-page">Landing pages</SelectItem>
-                  </SelectGroup>
-                </SelectContent>
-              </Select>
-              
-              <div className="flex flex-wrap gap-2 mt-2">
-                {selectedContentTypes.map((type) => (
-                  <Badge key={type} variant="outline" className="capitalize">
-                    {type}
-                    <button
-                      type="button"
-                      onClick={() => handleContentTypeChange(type)}
-                      className="ml-1 hover:bg-muted rounded-full"
-                    >
-                      <X className="h-3 w-3" />
-                    </button>
-                  </Badge>
-                ))}
-              </div>
+            <div className="flex flex-wrap gap-2 mt-2">
+              {selectedContentTypes.map((type) => (
+                <Badge key={type} variant="outline" className="capitalize">
+                  {type}
+                  <button
+                    type="button"
+                    onClick={() => handleContentTypeChange(type)}
+                    className="ml-1 hover:bg-muted rounded-full"
+                  >
+                    <X className="h-3 w-3" />
+                  </button>
+                </Badge>
+              ))}
             </div>
           </div>
+        </div>
+        
+        <div className="flex items-center space-x-2">
+          <Checkbox 
+            id="weekends" 
+            checked={includeWeekends} 
+            onCheckedChange={(checked) => setIncludeWeekends(checked === true)}
+          />
+          <Label htmlFor="weekends" className="cursor-pointer">
+            Include weekends in plan
+          </Label>
         </div>
         
         <div>

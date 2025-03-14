@@ -126,11 +126,18 @@ const CalendarPage: React.FC = () => {
 
   return (
     <div className="min-h-screen flex flex-col p-4 md:p-8 max-w-7xl mx-auto">
-      <header className="mb-8 animate-fade-in">
-        <h1 className="text-3xl font-bold mb-2">Content Calendar</h1>
-        <p className="text-muted-foreground">
-          Plan, create, and schedule your content for www.datahq.co.uk
-        </p>
+      <header className="mb-8 animate-fade-in flex items-center gap-4">
+        <img 
+          src="/logo.svg" 
+          alt="DataHQ Logo" 
+          className="w-12 h-12"
+        />
+        <div>
+          <h1 className="text-3xl font-bold mb-2">Content Calendar</h1>
+          <p className="text-muted-foreground">
+            Plan, create, and schedule your content for www.datahq.co.uk
+          </p>
+        </div>
       </header>
       
       <Tabs 
