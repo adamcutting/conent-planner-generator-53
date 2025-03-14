@@ -4,7 +4,12 @@ import KeywordForm from '@/components/KeywordForm';
 import { ChartBarIcon } from 'lucide-react';
 
 interface GenerateTabContentProps {
-  onGeneratePlan: (keywords: string[]) => void;
+  onGeneratePlan: (
+    keywords: string[], 
+    startDate: Date, 
+    includeWeekends: boolean,
+    contentTypes: string[]
+  ) => void;
 }
 
 const GenerateTabContent: React.FC<GenerateTabContentProps> = ({ onGeneratePlan }) => {
@@ -12,12 +17,12 @@ const GenerateTabContent: React.FC<GenerateTabContentProps> = ({ onGeneratePlan 
     <div className="max-w-xl mx-auto">
       <div className="mb-8 text-center">
         <div className="inline-block bg-primary/10 p-3 rounded-full mb-4">
-          <ChartBarIcon className="h-8 w-8 text-datahq-blue" />
+          <ChartBarIcon className="h-8 w-8 text-primary" />
         </div>
-        <h2 className="text-2xl font-bold text-datahq-charcoal mb-2">Content Plan Generator</h2>
-        <p className="text-gray-600">
+        <h2 className="text-2xl font-bold text-foreground mb-2">Content Plan Generator</h2>
+        <p className="text-muted-foreground">
           Generate a 90-day content plan for DataHQ with your target keywords.
-          Content will be scheduled only on weekdays.
+          Customize the start date, content types, and scheduling options.
         </p>
       </div>
       <KeywordForm onGeneratePlan={onGeneratePlan} />

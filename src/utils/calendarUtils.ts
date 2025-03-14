@@ -53,6 +53,21 @@ export const getNextWorkingDay = (date: Date): Date => {
   return nextDay;
 };
 
+// Function to find the next day based on weekend inclusion preference
+export const getNextDay = (date: Date, includeWeekends: boolean): Date => {
+  let nextDay = new Date(date);
+  nextDay = addDays(nextDay, 1);
+  
+  if (!includeWeekends) {
+    // Skip to next working day if weekends are excluded
+    while (!isWorkingDay(nextDay)) {
+      nextDay = addDays(nextDay, 1);
+    }
+  }
+  
+  return nextDay;
+};
+
 // Function to generate dummy content plan based on days from start
 export const generateInitialContentPlan = (): ContentPlanItem[] => {
   const startDate = getStartDate();
@@ -125,11 +140,28 @@ const getObjectiveByStyle = (style: string): string => {
 };
 
 // Function to generate a new content plan based on keywords
-export const generateContentPlanFromKeywords = (keywords: string[], startDate: Date): ContentPlanItem[] => {
+export const generateContentPlanFromKeywords = (
+  keywords: string[], 
+  startDate: Date, 
+  includeWeekends: boolean = false,
+  contentTypes: string[] = ['blog', 'social', 'email', 'infographic', 'landing-page']
+): ContentPlanItem[] => {
   const contentPlan: ContentPlanItem[] = [];
-  const contentTypes: Array<'blog' | 'social' | 'email' | 'infographic' | 'landing-page'> = [
+  
+  // Filter the selected content types from all available types
+  const availableContentTypes = [
     'blog', 'social', 'email', 'infographic', 'landing-page'
-  ];
+  ] as const;
+  
+  // Only include the selected content types
+  const selectedTypes = availableContentTypes.filter(type => 
+    contentTypes.includes(type)
+  ) as Array<'blog' | 'social' | 'email' | 'infographic' | 'landing-page'>;
+  
+  if (selectedTypes.length === 0) {
+    // If no content types are selected, return empty plan
+    return [];
+  }
   
   const contentStyles: Array<'knowledge' | 'guide' | 'infographic' | 'story' | 'stats' | 'testimonial'> = [
     'knowledge', 'guide', 'infographic', 'story', 'stats', 'testimonial'
@@ -148,13 +180,15 @@ export const generateContentPlanFromKeywords = (keywords: string[], startDate: D
   let currentDate = new Date(startDate);
   
   // Generate content items for each type according to the distribution
-  for (let type of contentTypes) {
+  for (let type of selectedTypes) {
     const count = distribution[type];
     
     for (let i = 0; i < count; i++) {
-      // Make sure we only schedule on working days
-      while (!isWorkingDay(currentDate)) {
-        currentDate = addDays(currentDate, 1);
+      // Make sure we only schedule on working days if includeWeekends is false
+      if (!includeWeekends) {
+        while (!isWorkingDay(currentDate)) {
+          currentDate = addDays(currentDate, 1);
+        }
       }
       
       const randomKeyword = keywords[Math.floor(Math.random() * keywords.length)];
@@ -172,9 +206,10 @@ export const generateContentPlanFromKeywords = (keywords: string[], startDate: D
         keywords: [randomKeyword]
       });
       
-      // Add a few working days between content items to space them out
+      // Add a few days between content items to space them out
+      // Use either working days or all days based on includeWeekends setting
       for (let j = 0; j < 2; j++) {
-        currentDate = getNextWorkingDay(currentDate);
+        currentDate = includeWeekends ? addDays(currentDate, 1) : getNextWorkingDay(currentDate);
       }
     }
   }

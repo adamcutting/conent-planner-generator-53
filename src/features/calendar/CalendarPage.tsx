@@ -61,15 +61,25 @@ const CalendarPage: React.FC = () => {
     });
   };
   
-  const handleGeneratePlan = (keywords: string[]) => {
-    const startDate = new Date();
+  const handleGeneratePlan = (
+    keywords: string[], 
+    startDate: Date, 
+    includeWeekends: boolean,
+    contentTypes: string[]
+  ) => {
+    const newPlan = generateContentPlanFromKeywords(
+      keywords, 
+      startDate, 
+      includeWeekends,
+      contentTypes
+    );
     
-    const newPlan = generateContentPlanFromKeywords(keywords, startDate);
     setContentPlan(newPlan);
+    setSelectedDate(startDate);
     
     toast({
       title: "Content plan generated",
-      description: `Created a new 90-day content plan with ${newPlan.length} items`,
+      description: `Created a new content plan with ${newPlan.length} items starting from ${startDate.toLocaleDateString()}`,
     });
     
     setActiveTab('calendar');
