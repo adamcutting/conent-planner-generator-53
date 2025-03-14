@@ -33,7 +33,7 @@ const CalendarTabContent: React.FC<CalendarTabContentProps> = ({
       id: `new-${Date.now()}`,
       title: `New Content Item`,
       description: `Add description`,
-      purpose: 'Engage with target audience',
+      objective: 'Engage with target audience',
       dueDate: selectedDate.toISOString(),
       completed: false,
       contentType: 'blog',
