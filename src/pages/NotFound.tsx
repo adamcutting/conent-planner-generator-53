@@ -19,7 +19,7 @@ const NotFound = () => {
           <img 
             src="/logo.svg" 
             alt="DataHQ Logo" 
-            className="w-24 h-24"
+            className="w-32 h-auto"
           />
         </div>
         <h1 className="text-4xl font-bold mb-4">404</h1>

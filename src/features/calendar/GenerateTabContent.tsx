@@ -1,7 +1,6 @@
 
 import React from 'react';
 import KeywordForm from '@/components/KeywordForm';
-import { ChartBarIcon } from 'lucide-react';
 
 interface GenerateTabContentProps {
   onGeneratePlan: (
@@ -20,7 +19,7 @@ const GenerateTabContent: React.FC<GenerateTabContentProps> = ({ onGeneratePlan 
           <img 
             src="/logo.svg" 
             alt="DataHQ Logo" 
-            className="h-16 w-16"
+            className="h-16 w-auto"
           />
         </div>
         <h2 className="text-2xl font-bold text-foreground mb-2">Content Plan Generator</h2>
