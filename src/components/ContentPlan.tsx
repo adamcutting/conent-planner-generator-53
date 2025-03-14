@@ -1,7 +1,7 @@
 
 import React, { useState } from 'react';
 import { format, parseISO, isSameDay } from 'date-fns';
-import { CheckCircle, Clock, Edit, TagIcon, Trash2, FileTextIcon, InfoIcon, LayoutIcon } from 'lucide-react';
+import { CheckCircle, Clock, Edit, TagIcon, Trash2, FileTextIcon, InfoIcon, LayoutIcon, TargetIcon } from 'lucide-react';
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { ContentPlanItem } from '@/utils/calendarUtils';
@@ -43,23 +43,23 @@ const ContentPlan: React.FC<ContentPlanProps> = ({
 
   const getContentTypeColor = (type: string): string => {
     switch(type) {
-      case 'blog': return 'bg-datahq-purple/30 text-datahq-darkpurple';
-      case 'social': return 'bg-green-100 text-green-800';
-      case 'email': return 'bg-datahq-softpurple text-datahq-tertiary';
-      case 'infographic': return 'bg-accent/20 text-datahq-magenta';
-      case 'landing-page': return 'bg-secondary/20 text-secondary';
+      case 'blog': return 'bg-datahq-darkpurple/30 text-datahq-darkpurple';
+      case 'social': return 'bg-datahq-teal/20 text-datahq-teal';
+      case 'email': return 'bg-datahq-yellow/20 text-datahq-yellow';
+      case 'infographic': return 'bg-datahq-brightmagenta/20 text-datahq-brightmagenta';
+      case 'landing-page': return 'bg-datahq-pink/20 text-datahq-pink';
       default: return 'bg-gray-100 text-gray-800';
     }
   };
 
   const getContentStyleColor = (style: string): string => {
     switch(style) {
-      case 'knowledge': return 'bg-datahq-purple/20 text-datahq-darkpurple';
-      case 'guide': return 'bg-cyan-100 text-cyan-800';
-      case 'infographic': return 'bg-accent/20 text-datahq-magenta';
-      case 'story': return 'bg-amber-100 text-amber-800';
-      case 'stats': return 'bg-emerald-100 text-emerald-800';
-      case 'testimonial': return 'bg-rose-100 text-rose-800';
+      case 'knowledge': return 'bg-datahq-darkpurple/20 text-datahq-darkpurple';
+      case 'guide': return 'bg-datahq-teal/20 text-datahq-teal';
+      case 'infographic': return 'bg-datahq-brightmagenta/20 text-datahq-brightmagenta';
+      case 'story': return 'bg-datahq-yellow/20 text-datahq-yellow';
+      case 'stats': return 'bg-datahq-magenta/20 text-datahq-magenta';
+      case 'testimonial': return 'bg-datahq-pink/20 text-datahq-pink';
       default: return 'bg-gray-100 text-gray-800';
     }
   };
@@ -87,9 +87,12 @@ const ContentPlan: React.FC<ContentPlanProps> = ({
                     <p className="text-sm text-muted-foreground mt-1">
                       {item.description}
                     </p>
-                    <div className="mt-3 p-3 bg-datahq-softpurple/30 rounded-md border border-datahq-purple/20">
-                      <h4 className="text-sm font-medium text-datahq-darkpurple mb-1">Messaging Purpose:</h4>
-                      <p className="text-sm text-muted-foreground">{item.purpose}</p>
+                    <div className="mt-3 p-3 bg-datahq-cream rounded-md border border-datahq-teal/20">
+                      <h4 className="text-sm font-medium text-datahq-darkpurple mb-1 flex items-center">
+                        <TargetIcon className="h-4 w-4 mr-1 text-datahq-pink" />
+                        Content Objective:
+                      </h4>
+                      <p className="text-sm text-muted-foreground">{item.objective}</p>
                     </div>
                   </div>
                   <div>
@@ -100,7 +103,7 @@ const ContentPlan: React.FC<ContentPlanProps> = ({
                       onClick={() => handleToggleComplete(item)}
                     >
                       {item.completed ? 
-                        <CheckCircle className="h-5 w-5 text-green-600" /> : 
+                        <CheckCircle className="h-5 w-5 text-datahq-teal" /> : 
                         <Clock className="h-5 w-5 text-muted-foreground" />
                       }
                     </Button>
@@ -128,7 +131,7 @@ const ContentPlan: React.FC<ContentPlanProps> = ({
                     <Badge 
                       key={idx} 
                       variant="outline" 
-                      className="bg-datahq-purple/10 text-datahq-tertiary text-xs flex items-center"
+                      className="bg-datahq-cream text-datahq-magenta text-xs flex items-center"
                     >
                       <TagIcon className="h-3 w-3 mr-1" />
                       {keyword}

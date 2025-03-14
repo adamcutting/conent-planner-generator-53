@@ -6,33 +6,33 @@
 
 @layer base {
   :root {
-    --background: 210 33% 99%;
-    --foreground: 222 47% 11%;
+    --background: 35 60% 97%;    /* Light cream background #F6F3ED */
+    --foreground: 261 45% 25%;   /* Dark purple text #312053 */
 
     --card: 0 0% 100%;
-    --card-foreground: 222 47% 11%;
+    --card-foreground: 261 45% 25%;  /* Dark purple text */
 
     --popover: 0 0% 100%;
-    --popover-foreground: 222 47% 11%;
+    --popover-foreground: 261 45% 25%;
 
-    --primary: 265 85% 75%;  /* DataHQ purple - #9b87f5 */
-    --primary-foreground: 210 40% 98%;
+    --primary: 261 45% 25%;       /* Primary - DataHQ dark purple #312053 */
+    --primary-foreground: 0 0% 100%;
 
-    --secondary: 275 40% 60%;  /* DataHQ secondary purple - #7E69AB */
-    --secondary-foreground: 222 47% 11.2%;
+    --secondary: 190 65% 49%;     /* Secondary - DataHQ teal #2BB3D1 */
+    --secondary-foreground: 0 0% 100%;
 
-    --muted: 210 40% 96.1%;
-    --muted-foreground: 215.4 16.3% 46.9%;
+    --muted: 35 30% 96%;
+    --muted-foreground: 261 10% 55%;
 
-    --accent: 300 88% 60%;  /* DataHQ magenta - #D946EF */
-    --accent-foreground: 222.2 47.4% 11.2%;
+    --accent: 336 97% 66%;        /* Accent - DataHQ pink #FD5473 */
+    --accent-foreground: 0 0% 100%;
 
     --destructive: 0 84.2% 60.2%;
-    --destructive-foreground: 210 40% 98%;
+    --destructive-foreground: 0 0% 98%;
 
-    --border: 214.3 31.8% 91.4%;
-    --input: 214.3 31.8% 91.4%;
-    --ring: 265 85% 75%;  /* DataHQ purple */
+    --border: 35 15% 90%;
+    --input: 35 15% 90%;
+    --ring: 261 45% 25%;          /* Ring - DataHQ dark purple */
 
     --radius: 0.75rem;
   }

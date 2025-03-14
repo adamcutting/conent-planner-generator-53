@@ -97,8 +97,8 @@ const CalendarPage: React.FC = () => {
         dueDate: selectedDate.toISOString(),
         completed: false,
         contentType: 'blog',
-        contentStyle: 'knowledge', // Added missing property
-        purpose: 'Share industry expertise and build authority', // Added missing property
+        contentStyle: 'knowledge',
+        objective: 'Focus on how clean data improves prospecting.',
         keywords: ['content']
       };
       

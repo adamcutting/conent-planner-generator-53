@@ -1,3 +1,4 @@
+
 import { addDays, format, isSameDay, parseISO, startOfWeek, addWeeks, getDaysInMonth, startOfMonth } from 'date-fns';
 
 // Defining the Content Plan Item interface
@@ -5,7 +6,7 @@ export interface ContentPlanItem {
   id: string;
   title: string;
   description: string;
-  purpose: string;
+  objective: string;  // Renamed from 'purpose' to 'objective'
   dueDate: string;
   completed: boolean;
   contentType: 'blog' | 'social' | 'email' | 'infographic' | 'landing-page';
@@ -84,7 +85,7 @@ export const generateInitialContentPlan = (): ContentPlanItem[] => {
         id: `item-${contentIndex}`,
         title: `${contentType.type.charAt(0).toUpperCase() + contentType.type.slice(1)} #${contentIndex + 1}`,
         description: `Create a ${contentType.type} post about ${contentType.keywords[Math.floor(Math.random() * contentType.keywords.length)]}`,
-        purpose: getPurposeByStyle(contentType.style),
+        objective: getObjectiveByStyle(contentType.style),
         dueDate: currentDate.toISOString(),
         completed: false,
         contentType: contentType.type,
@@ -102,24 +103,25 @@ export const generateInitialContentPlan = (): ContentPlanItem[] => {
   return contentPlan;
 };
 
-// Helper function to get purpose by content style with enhanced descriptions
-const getPurposeByStyle = (style: string): string => {
-  switch (style) {
-    case 'knowledge':
-      return 'Build brand authority by sharing in-depth industry expertise and thought leadership content that positions DataHQ as a trusted expert';
-    case 'guide':
-      return 'Provide practical step-by-step instructions that help audience solve specific data-related challenges, increasing engagement and demonstrating DataHQ\'s expertise';
-    case 'infographic':
-      return 'Transform complex data into visually appealing and easily shareable graphics that improve comprehension and increase social sharing';
-    case 'story':
-      return 'Create emotional connection with audience through relatable narratives that humanize data concepts and showcase real-world applications';
-    case 'stats':
-      return 'Strengthen credibility by presenting compelling data-backed insights that support key business arguments and showcase DataHQ\'s analytical capabilities';
-    case 'testimonial':
-      return 'Build trust and overcome objections by highlighting customer success stories that validate DataHQ\'s solutions and demonstrate proven results';
-    default:
-      return 'Connect with target audience through relevant content that addresses their needs and interests';
-  }
+// Helper function to get objective by content style with specific content goals
+const getObjectiveByStyle = (style: string): string => {
+  const objectives = [
+    "Focus on how clean data improves prospecting.",
+    "SEO-targeted landing page on cleaning & enriching data.",
+    "Best practices for creating targeted B2B email lists.",
+    "Demonstrate data enrichment ROI with real-world examples.",
+    "Explain how data decay affects marketing performance.",
+    "Position DataHQ as experts in data-driven marketing.",
+    "Show how improved data quality leads to higher conversion rates.",
+    "Highlight the cost of poor data quality in marketing campaigns.",
+    "Explain our data processing methodology compared to competitors.",
+    "Educate prospects on GDPR compliance in data management.",
+    "Build trust by sharing transparent data handling practices.",
+    "Showcase customer success metrics from data cleansing projects."
+  ];
+  
+  // Return a random objective from the list
+  return objectives[Math.floor(Math.random() * objectives.length)];
 };
 
 // Function to generate a new content plan based on keywords
@@ -162,7 +164,7 @@ export const generateContentPlanFromKeywords = (keywords: string[], startDate: D
         id: `item-${contentId++}`,
         title: generateTitle(type, randomKeyword, randomStyle),
         description: `Create a ${type} about ${randomKeyword}`,
-        purpose: getPurposeByStyle(randomStyle),
+        objective: getObjectiveByStyle(randomStyle),
         dueDate: currentDate.toISOString(),
         completed: false,
         contentType: type,
