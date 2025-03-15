@@ -62,6 +62,8 @@ export default {
 					yellow: '#FFC501', 
 					magenta: '#9C2F74',
 					brightmagenta: '#C22187',
+					sand: '#F6F3ED',
+					sandDark: '#E9E5DD',
 				},
 			},
 			borderRadius: {

@@ -1,4 +1,3 @@
-
 import React, { useState } from 'react';
 import { Check, Globe, Plus } from 'lucide-react';
 import { Button } from "@/components/ui/button";
@@ -13,7 +12,7 @@ import { Input } from "@/components/ui/input";
 import { useWebsite, Website } from '@/contexts/WebsiteContext';
 import { useToast } from "@/components/ui/use-toast";
 
-const WebsiteSwitcher: React.FC = () => {
+export const WebsiteSwitcher: React.FC = () => {
   const { selectedWebsite, setSelectedWebsite, websites, addWebsite } = useWebsite();
   const [newWebsiteUrl, setNewWebsiteUrl] = useState("");
   const [isOpen, setIsOpen] = useState(false);
