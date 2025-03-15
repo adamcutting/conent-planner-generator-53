@@ -10,19 +10,20 @@ import EmailPage from "./pages/EmailPage";
 import GeneratePlanPage from "./pages/GeneratePlanPage";
 import AppHeader from "./components/AppHeader";
 import { WebsiteProvider, useWebsite } from "./contexts/WebsiteContext";
+import { useEffect } from "react";
 
 const queryClient = new QueryClient();
 
 const AppContent = () => {
   const { selectedWebsite } = useWebsite();
+  
+  // Update CSS variable whenever selectedWebsite changes
+  useEffect(() => {
+    document.documentElement.style.setProperty('--website-color', selectedWebsite.color);
+  }, [selectedWebsite]);
 
   return (
     <div className="min-h-screen flex flex-col">
-      <style jsx global>{`
-        :root {
-          --website-color: ${selectedWebsite.color};
-        }
-      `}</style>
       <AppHeader />
       <main className="flex-1">
         <Routes>
