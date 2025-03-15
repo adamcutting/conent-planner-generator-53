@@ -1,10 +1,7 @@
 
 import React, { useState, useEffect } from 'react';
-import { Tabs, TabsContent } from "@/components/ui/tabs";
 import { useToast } from "@/components/ui/use-toast";
-import CalendarHeader from './CalendarHeader';
 import CalendarTabContent from './CalendarTabContent';
-import GenerateTabContent from './GenerateTabContent';
 import ContentDialogs from './ContentDialogs';
 import { 
   ContentPlanItem, 
@@ -13,12 +10,13 @@ import {
   getStartDate
 } from '@/utils/calendarUtils';
 import { saveContentPlan, loadContentPlan } from '@/utils/contentUtils';
+import { Button } from "@/components/ui/button";
+import { SettingsIcon, PlusIcon } from 'lucide-react';
 
 const CalendarPage: React.FC = () => {
   const { toast } = useToast();
   const [contentPlan, setContentPlan] = useState<ContentPlanItem[]>([]);
   const [selectedDate, setSelectedDate] = useState<Date>(getStartDate());
-  const [activeTab, setActiveTab] = useState<string>('calendar');
   const [showEmailSettings, setShowEmailSettings] = useState(false);
   const [showContentGenerator, setShowContentGenerator] = useState(false);
   const [editingContentItem, setEditingContentItem] = useState<ContentPlanItem | undefined>(undefined);
@@ -61,30 +59,6 @@ const CalendarPage: React.FC = () => {
     });
   };
   
-  const handleGeneratePlan = (
-    keywords: string[], 
-    startDate: Date, 
-    includeWeekends: boolean,
-    contentTypes: string[]
-  ) => {
-    const newPlan = generateContentPlanFromKeywords(
-      keywords, 
-      startDate, 
-      includeWeekends,
-      contentTypes
-    );
-    
-    setContentPlan(newPlan);
-    setSelectedDate(startDate);
-    
-    toast({
-      title: "Content plan generated",
-      description: `Created a new content plan with ${newPlan.length} items starting from ${startDate.toLocaleDateString()}`,
-    });
-    
-    setActiveTab('calendar');
-  };
-  
   const handleEditContent = (item: ContentPlanItem) => {
     setEditingContentItem(item);
     setShowContentGenerator(true);
@@ -124,50 +98,42 @@ const CalendarPage: React.FC = () => {
     });
   };
 
+  const handleNewContent = () => {
+    setEditingContentItem(undefined);
+    setShowContentGenerator(true);
+  };
+
   return (
     <div className="min-h-screen flex flex-col p-4 md:p-8 max-w-7xl mx-auto">
-      <header className="mb-8 animate-fade-in flex items-center gap-4">
-        <img 
-          src="/logo.svg" 
-          alt="DataHQ Logo" 
-          className="w-12 h-12"
-        />
-        <div>
-          <h1 className="text-3xl font-bold mb-2">Content Calendar</h1>
-          <p className="text-muted-foreground">
-            Plan, create, and schedule your content for www.datahq.co.uk
-          </p>
-        </div>
+      <header className="mb-8 animate-fade-in">
+        <h1 className="text-3xl font-bold mb-2">Content Calendar</h1>
+        <p className="text-muted-foreground">
+          Plan, create, and schedule your content for www.datahq.co.uk
+        </p>
       </header>
       
-      <Tabs 
-        value={activeTab} 
-        onValueChange={setActiveTab}
-        className="flex-1 flex flex-col"
-      >
-        <CalendarHeader 
-          activeTab={activeTab}
-          setShowEmailSettings={setShowEmailSettings}
-          setEditingContentItem={setEditingContentItem}
-          setShowContentGenerator={setShowContentGenerator}
-        />
-        
-        <TabsContent value="calendar">
-          <CalendarTabContent 
-            contentPlan={contentPlan}
-            selectedDate={selectedDate}
-            setSelectedDate={setSelectedDate}
-            setContentPlan={setContentPlan}
-            onUpdateItem={handleUpdateItem}
-            onDeleteItem={handleDeleteItem}
-            onEditContent={handleEditContent}
-          />
-        </TabsContent>
-        
-        <TabsContent value="generate">
-          <GenerateTabContent onGeneratePlan={handleGeneratePlan} />
-        </TabsContent>
-      </Tabs>
+      <div className="flex justify-end mb-6">
+        <div className="flex gap-2">
+          <Button variant="outline" size="sm" onClick={() => setShowEmailSettings(true)}>
+            <SettingsIcon className="h-4 w-4 mr-2" />
+            Email Settings
+          </Button>
+          <Button size="sm" onClick={handleNewContent}>
+            <PlusIcon className="h-4 w-4 mr-2" />
+            New Content
+          </Button>
+        </div>
+      </div>
+      
+      <CalendarTabContent 
+        contentPlan={contentPlan}
+        selectedDate={selectedDate}
+        setSelectedDate={setSelectedDate}
+        setContentPlan={setContentPlan}
+        onUpdateItem={handleUpdateItem}
+        onDeleteItem={handleDeleteItem}
+        onEditContent={handleEditContent}
+      />
       
       <ContentDialogs 
         showEmailSettings={showEmailSettings}

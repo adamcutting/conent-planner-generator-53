@@ -12,7 +12,7 @@ const AppHeader = () => {
       <div className="container mx-auto px-4 py-3 flex justify-between items-center">
         <div className="flex items-center">
           <Link to="/" className="flex items-center">
-            <img src="/logo.svg" alt="DataHQ Logo" className="h-10 w-auto" />
+            <span className="text-xl font-bold">DataHQ</span>
           </Link>
         </div>
         
@@ -23,7 +23,15 @@ const AppHeader = () => {
                 navigationMenuTriggerStyle(),
                 location.pathname === "/" ? "bg-accent/50" : ""
               )}>
-                Content Planner
+                Content Calendar
+              </Link>
+            </NavigationMenuItem>
+            <NavigationMenuItem>
+              <Link to="/generate" className={cn(
+                navigationMenuTriggerStyle(),
+                location.pathname === "/generate" ? "bg-accent/50" : ""
+              )}>
+                Generate Plan
               </Link>
             </NavigationMenuItem>
             <NavigationMenuItem>
