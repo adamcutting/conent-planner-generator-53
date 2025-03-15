@@ -9,8 +9,33 @@ import NotFound from "./pages/NotFound";
 import EmailPage from "./pages/EmailPage";
 import GeneratePlanPage from "./pages/GeneratePlanPage";
 import AppHeader from "./components/AppHeader";
+import { WebsiteProvider, useWebsite } from "./contexts/WebsiteContext";
 
 const queryClient = new QueryClient();
+
+const AppContent = () => {
+  const { selectedWebsite } = useWebsite();
+
+  return (
+    <div className="min-h-screen flex flex-col">
+      <style jsx global>{`
+        :root {
+          --website-color: ${selectedWebsite.color};
+        }
+      `}</style>
+      <AppHeader />
+      <main className="flex-1">
+        <Routes>
+          <Route path="/" element={<Index />} />
+          <Route path="/email" element={<EmailPage />} />
+          <Route path="/generate" element={<GeneratePlanPage />} />
+          {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}
+          <Route path="*" element={<NotFound />} />
+        </Routes>
+      </main>
+    </div>
+  );
+};
 
 const App = () => (
   <QueryClientProvider client={queryClient}>
@@ -18,18 +43,9 @@ const App = () => (
       <Toaster />
       <Sonner />
       <BrowserRouter>
-        <div className="min-h-screen flex flex-col">
-          <AppHeader />
-          <main className="flex-1">
-            <Routes>
-              <Route path="/" element={<Index />} />
-              <Route path="/email" element={<EmailPage />} />
-              <Route path="/generate" element={<GeneratePlanPage />} />
-              {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}
-              <Route path="*" element={<NotFound />} />
-            </Routes>
-          </main>
-        </div>
+        <WebsiteProvider>
+          <AppContent />
+        </WebsiteProvider>
       </BrowserRouter>
     </TooltipProvider>
   </QueryClientProvider>
