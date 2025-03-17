@@ -27,9 +27,9 @@ const AppContent = () => {
       <AppHeader />
       <main className="flex-1">
         <Routes>
+          <Route path="/generate" element={<GeneratePlanPage />} />
           <Route path="/" element={<Index />} />
           <Route path="/email" element={<EmailPage />} />
-          <Route path="/generate" element={<GeneratePlanPage />} />
           {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}
           <Route path="*" element={<NotFound />} />
         </Routes>

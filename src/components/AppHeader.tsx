@@ -1,3 +1,4 @@
+
 import React from 'react';
 import { Link, useLocation } from 'react-router-dom';
 import { WebsiteSwitcher } from '@/components/WebsiteSwitcher';
@@ -45,19 +46,9 @@ const AppHeader = () => {
               <WebsiteSwitcher />
             </div>
 
-            {/* Main Navigation - keeping our existing menu items */}
+            {/* Main Navigation - switching the order of Content Calendar and Generate Plan */}
             <div className="hidden lg:block lg:order-2 w-full mt-4 lg:mt-0 lg:w-auto">
               <ul className="flex flex-col lg:flex-row lg:items-center lg:justify-between gap-2 lg:gap-8 xl:gap-16">
-                <li className="navigation-menu-item lg:opacity-100">
-                  <Link
-                    to="/"
-                    className={`block py-2 font-semibold text-3xl lg:text-base w-full xl:text-base transition duration-200 ease-linear hover:text-datahq-brightmagenta ${
-                      location.pathname === "/" ? "text-datahq-brightmagenta" : ""
-                    }`}
-                  >
-                    Content Calendar
-                  </Link>
-                </li>
                 <li className="navigation-menu-item lg:opacity-100">
                   <Link
                     to="/generate"
@@ -66,6 +57,16 @@ const AppHeader = () => {
                     }`}
                   >
                     Generate Plan
+                  </Link>
+                </li>
+                <li className="navigation-menu-item lg:opacity-100">
+                  <Link
+                    to="/"
+                    className={`block py-2 font-semibold text-3xl lg:text-base w-full xl:text-base transition duration-200 ease-linear hover:text-datahq-brightmagenta ${
+                      location.pathname === "/" ? "text-datahq-brightmagenta" : ""
+                    }`}
+                  >
+                    Content Calendar
                   </Link>
                 </li>
                 <li className="navigation-menu-item lg:opacity-100">
@@ -81,18 +82,18 @@ const AppHeader = () => {
               </ul>
             </div>
             
-            {/* Mobile Navigation */}
+            {/* Mobile Navigation - also switching the order here */}
             <div className="lg:hidden w-full mt-4">
               <div className="flex justify-between border-t border-gray-100 pt-4">
-                <Link to="/" className={`px-3 py-2 text-sm font-medium rounded-md ${
-                  location.pathname === "/" ? "bg-muted text-datahq-brightmagenta" : ""
-                }`}>
-                  Calendar
-                </Link>
                 <Link to="/generate" className={`px-3 py-2 text-sm font-medium rounded-md ${
                   location.pathname === "/generate" ? "bg-muted text-datahq-brightmagenta" : ""
                 }`}>
                   Generate
+                </Link>
+                <Link to="/" className={`px-3 py-2 text-sm font-medium rounded-md ${
+                  location.pathname === "/" ? "bg-muted text-datahq-brightmagenta" : ""
+                }`}>
+                  Calendar
                 </Link>
                 <Link to="/email" className={`px-3 py-2 text-sm font-medium rounded-md ${
                   location.pathname === "/email" ? "bg-muted text-datahq-brightmagenta" : ""
