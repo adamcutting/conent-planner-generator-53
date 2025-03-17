@@ -1,3 +1,4 @@
+
 // Email utilities for sending reminders and content
 
 export interface EmailConfig {
@@ -231,6 +232,50 @@ export const emailTemplates = {
       </body>
       </html>
     `
+  },
+  test: {
+    subject: 'Content Calendar - Test Email',
+    generateHtml: (smtpDetails: EmailConfig) => `
+      <!DOCTYPE html>
+      <html>
+      <head>
+        <meta charset="UTF-8">
+        <title>Content Calendar Test Email</title>
+        <style>
+          body { font-family: Arial, sans-serif; line-height: 1.6; color: #333; }
+          .container { max-width: 600px; margin: 0 auto; padding: 20px; }
+          .header { background-color: #321947; padding: 20px; text-align: center; color: white; }
+          .content { padding: 20px; background-color: #f9f9f9; }
+          .footer { padding: 10px; text-align: center; font-size: 12px; color: #666; }
+          .info-box { background-color: #e9f5ff; border-left: 4px solid #0284c7; padding: 15px; margin-bottom: 20px; }
+        </style>
+      </head>
+      <body>
+        <div class="container">
+          <div class="header">
+            <h1>Content Calendar - Test Email</h1>
+          </div>
+          <div class="content">
+            <p>Hello,</p>
+            <p>This is a test email from your Content Calendar application.</p>
+            <div class="info-box">
+              <p><strong>SMTP Details:</strong></p>
+              <ul>
+                <li>Host: ${smtpDetails.host}</li>
+                <li>Port: ${smtpDetails.port}</li>
+                <li>User: ${smtpDetails.auth.user}</li>
+              </ul>
+              <p>If you're receiving this email, it means the email configuration is working correctly.</p>
+            </div>
+            <p>You can now use the email notification system to receive reminders about upcoming content and weekly summaries of your content plan.</p>
+          </div>
+          <div class="footer">
+            <p>© ${new Date().getFullYear()} DataHQ Ltd. All rights reserved.</p>
+          </div>
+        </div>
+      </body>
+      </html>
+    `
   }
 };
 
@@ -279,48 +324,13 @@ export const sendTestEmail = async (emailAddress: string): Promise<boolean> => {
   console.log(`Port: ${emailConfig.port}`);
   console.log(`User: ${emailConfig.auth.user}`);
   
-  const testHtml = `
-    <!DOCTYPE html>
-    <html>
-    <head>
-      <meta charset="UTF-8">
-      <title>Content Calendar Test Email</title>
-      <style>
-        body { font-family: Arial, sans-serif; line-height: 1.6; color: #333; }
-        .container { max-width: 600px; margin: 0 auto; padding: 20px; }
-        .header { background-color: #321947; padding: 20px; text-align: center; color: white; }
-        .content { padding: 20px; background-color: #f9f9f9; }
-        .footer { padding: 10px; text-align: center; font-size: 12px; color: #666; }
-      </style>
-    </head>
-    <body>
-      <div class="container">
-        <div class="header">
-          <h1>Content Calendar - Test Email</h1>
-        </div>
-        <div class="content">
-          <p>Hello,</p>
-          <p>This is a test email from your Content Calendar application.</p>
-          <p>SMTP Details:</p>
-          <ul>
-            <li>Host: ${emailConfig.host}</li>
-            <li>Port: ${emailConfig.port}</li>
-            <li>User: ${emailConfig.auth.user}</li>
-          </ul>
-          <p>If you're receiving this email, it means the email configuration is working correctly.</p>
-        </div>
-        <div class="footer">
-          <p>© ${new Date().getFullYear()} DataHQ Ltd. All rights reserved.</p>
-        </div>
-      </div>
-    </body>
-    </html>
-  `;
+  // Generate the test email HTML
+  const testHtml = emailTemplates.test.generateHtml(emailConfig);
   
   // Send the test email using the Edge Function
   return await sendEmail({
     to: emailAddress,
-    subject: 'Content Calendar - Test Email',
+    subject: emailTemplates.test.subject,
     html: testHtml,
     type: 'test'
   });

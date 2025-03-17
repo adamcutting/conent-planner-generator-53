@@ -9,6 +9,7 @@ import { useToast } from "@/components/ui/use-toast";
 import { emailSettings } from '@/utils/contentUtils';
 import { checkAndSendReminders, sendWeeklySummary, sendTestEmail } from '@/utils/emailUtils';
 import { loadContentPlan } from '@/utils/contentUtils';
+import { useAuth } from '@/contexts/AuthContext';
 
 interface EmailSettingsProps {
   onClose: () => void;
@@ -16,6 +17,7 @@ interface EmailSettingsProps {
 
 const EmailSettings: React.FC<EmailSettingsProps> = ({ onClose }) => {
   const { toast } = useToast();
+  const { user } = useAuth();
   const [email, setEmail] = useState('');
   const [daysBeforeDue, setDaysBeforeDue] = useState(1);
   const [emailNotificationsEnabled, setEmailNotificationsEnabled] = useState(false);
@@ -30,8 +32,11 @@ const EmailSettings: React.FC<EmailSettingsProps> = ({ onClose }) => {
       setDaysBeforeDue(savedSettings.daysBeforeDue);
       setEmailNotificationsEnabled(true);
       setWeeklySummaryEnabled(savedSettings.weeklySummary || false);
+    } else if (user?.email) {
+      // If no saved email but user is logged in, prefill with user's email
+      setEmail(user.email);
     }
-  }, []);
+  }, [user]);
   
   const handleSave = () => {
     if (emailNotificationsEnabled && !isValidEmail(email)) {
@@ -99,12 +104,13 @@ const EmailSettings: React.FC<EmailSettingsProps> = ({ onClose }) => {
   };
   
   const handleTestEmail = async () => {
-    const testEmail = 'acutting@datahq.co.uk';
+    // Use the email address from the form or fall back to the logged-in user's email
+    const testEmail = email || (user?.email || '');
     
     if (!isValidEmail(testEmail)) {
       toast({
         title: "Invalid email",
-        description: "The provided email address is invalid",
+        description: "Please provide a valid email address",
         variant: "destructive",
       });
       return;
@@ -123,7 +129,7 @@ const EmailSettings: React.FC<EmailSettingsProps> = ({ onClose }) => {
       if (success) {
         toast({
           title: "Email sent successfully",
-          description: "A test email has been sent to acutting@datahq.co.uk",
+          description: `A test email has been sent to ${testEmail}`,
         });
       } else {
         toast({
@@ -220,7 +226,7 @@ const EmailSettings: React.FC<EmailSettingsProps> = ({ onClose }) => {
               disabled={isSending}
             >
               <SendIcon className="mr-2 h-4 w-4" />
-              {isSending ? 'Sending test email...' : 'Send test email to acutting@datahq.co.uk'}
+              {isSending ? 'Sending test email...' : `Send test email to ${email || (user?.email || 'your email')}`}
             </Button>
           </div>
         </>
