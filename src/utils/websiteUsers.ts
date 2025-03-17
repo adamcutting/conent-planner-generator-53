@@ -36,11 +36,19 @@ export const getWebsiteUsers = async (websiteId: string): Promise<WebsiteUser[]>
       return [];
     }
     
-    // Transform the raw data to ensure role is the correct type
-    return (data || []).map(user => ({
-      ...user,
-      role: user.role === 'admin' ? 'admin' : 'editor' // Ensure role is strictly 'admin' or 'editor'
-    })) as WebsiteUser[];
+    // Transform the raw data to handle potential missing profiles and ensure role is the correct type
+    return (data || []).map(user => {
+      // If profiles is a SelectQueryError (indicated by error property), replace with null
+      const profileData = user.profiles && 'error' in user.profiles 
+        ? null 
+        : user.profiles;
+      
+      return {
+        ...user,
+        role: user.role === 'admin' ? 'admin' : 'editor', // Ensure role is strictly 'admin' or 'editor'
+        profiles: profileData
+      };
+    }) as WebsiteUser[];
   } catch (error) {
     console.error('Error fetching website users:', error);
     return [];
