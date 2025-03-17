@@ -10,7 +10,11 @@ import EmailPage from "./pages/EmailPage";
 import GeneratePlanPage from "./pages/GeneratePlanPage";
 import AppHeader from "./components/AppHeader";
 import { WebsiteProvider, useWebsite } from "./contexts/WebsiteContext";
+import { AuthProvider } from "./contexts/AuthContext";
 import { useEffect } from "react";
+import SignIn from "./pages/SignIn";
+import SignUp from "./pages/SignUp";
+import ProtectedRoute from "./components/ProtectedRoute";
 
 const queryClient = new QueryClient();
 
@@ -27,10 +31,28 @@ const AppContent = () => {
       <AppHeader />
       <main className="flex-1">
         <Routes>
-          <Route path="/generate" element={<GeneratePlanPage />} />
-          <Route path="/" element={<Index />} />
-          <Route path="/email" element={<EmailPage />} />
-          {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}
+          {/* Public routes */}
+          <Route path="/signin" element={<SignIn />} />
+          <Route path="/signup" element={<SignUp />} />
+          
+          {/* Protected routes */}
+          <Route path="/" element={
+            <ProtectedRoute>
+              <Index />
+            </ProtectedRoute>
+          } />
+          <Route path="/generate" element={
+            <ProtectedRoute>
+              <GeneratePlanPage />
+            </ProtectedRoute>
+          } />
+          <Route path="/email" element={
+            <ProtectedRoute>
+              <EmailPage />
+            </ProtectedRoute>
+          } />
+          
+          {/* Catch-all route */}
           <Route path="*" element={<NotFound />} />
         </Routes>
       </main>
@@ -44,9 +66,11 @@ const App = () => (
       <Toaster />
       <Sonner />
       <BrowserRouter>
-        <WebsiteProvider>
-          <AppContent />
-        </WebsiteProvider>
+        <AuthProvider>
+          <WebsiteProvider>
+            <AppContent />
+          </WebsiteProvider>
+        </AuthProvider>
       </BrowserRouter>
     </TooltipProvider>
   </QueryClientProvider>

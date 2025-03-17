@@ -1,5 +1,7 @@
 
 import React, { createContext, useContext, useState, ReactNode, useEffect } from 'react';
+import { supabase } from '@/integrations/supabase/client';
+import { useAuth } from './AuthContext';
 
 export interface Website {
   id: string;
@@ -50,15 +52,46 @@ const WebsiteContext = createContext<WebsiteContextType | undefined>(undefined);
 export const WebsiteProvider = ({ children }: { children: ReactNode }) => {
   const [websites, setWebsites] = useState<Website[]>(getSavedWebsites);
   const [selectedWebsite, setSelectedWebsite] = useState<Website>(websites[0]);
+  const { user } = useAuth();
 
   // Save websites to localStorage whenever they change
   useEffect(() => {
     localStorage.setItem('websites', JSON.stringify(websites));
   }, [websites]);
 
+  // Load websites from Supabase when authenticated
+  useEffect(() => {
+    const loadUserWebsites = async () => {
+      if (!user) return;
+
+      try {
+        const { data, error } = await supabase
+          .from('website_users')
+          .select('website_id')
+          .eq('user_id', user.id);
+
+        if (error) {
+          console.error('Error loading user websites:', error);
+          return;
+        }
+
+        // If user has website access, just continue with current websites
+        // This is a simplified approach - in a real app, you'd want to
+        // fetch websites from the database and merge with local storage
+        if (data && data.length > 0) {
+          console.log('User has access to websites:', data);
+        }
+      } catch (error) {
+        console.error('Error loading user websites:', error);
+      }
+    };
+
+    loadUserWebsites();
+  }, [user]);
+
   // Add a new website from URL
-  const addWebsite = (url: string) => {
-    if (!url) return;
+  const addWebsite = async (url: string) => {
+    if (!url || !user) return;
 
     // Check if website already exists
     const exists = websites.some(
@@ -70,13 +103,26 @@ export const WebsiteProvider = ({ children }: { children: ReactNode }) => {
       const updatedWebsites = [...websites, newWebsite];
       setWebsites(updatedWebsites);
       setSelectedWebsite(newWebsite);
+
+      // Add the association in the database
+      try {
+        await supabase
+          .from('website_users')
+          .insert({
+            user_id: user.id,
+            website_id: newWebsite.id,
+            role: 'admin'  // First user is admin
+          });
+      } catch (error) {
+        console.error('Error adding website to database:', error);
+      }
     }
   };
 
   // Remove a website by ID
-  const removeWebsite = (id: string) => {
+  const removeWebsite = async (id: string) => {
     // Don't allow removing the last website
-    if (websites.length <= 1) {
+    if (websites.length <= 1 || !user) {
       return;
     }
 
@@ -86,6 +132,17 @@ export const WebsiteProvider = ({ children }: { children: ReactNode }) => {
     // If we're removing the currently selected website, select the first one
     if (selectedWebsite.id === id) {
       setSelectedWebsite(updatedWebsites[0]);
+    }
+
+    // Remove the association in the database
+    try {
+      await supabase
+        .from('website_users')
+        .delete()
+        .eq('website_id', id)
+        .eq('user_id', user.id);
+    } catch (error) {
+      console.error('Error removing website from database:', error);
     }
   };
 
