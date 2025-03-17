@@ -75,7 +75,7 @@ const CalendarView: React.FC<CalendarViewProps> = ({ contentPlan, onSelectDate, 
               key={i}
               onClick={() => handleDayClick(day)}
               className={`
-                h-24 p-1 rounded-md transition-all duration-250 cursor-pointer relative
+                min-h-[5rem] p-1 rounded-md transition-all duration-250 cursor-pointer relative flex flex-col
                 ${isCurrentMonth ? '' : 'text-muted-foreground/30'}
                 ${isSelected ? 'bg-primary/10 shadow-sm' : 'hover:bg-secondary'}
                 ${isToday(day) ? 'border border-primary/50' : ''}
@@ -86,10 +86,12 @@ const CalendarView: React.FC<CalendarViewProps> = ({ contentPlan, onSelectDate, 
                 {format(day, 'd')}
               </div>
               
+              <div className="flex-grow"></div>
+              
               {contentCount > 0 && (
-                <div className="absolute bottom-1 left-1 right-1 flex justify-center">
+                <div className="mt-auto mb-1 mx-1">
                   <div className={`
-                    text-xs px-2 py-0.5 rounded-full
+                    text-xs px-2 py-0.5 rounded-full text-center
                     ${isSelected ? 'bg-datahq-blue text-white' : 'bg-muted text-foreground'}
                   `}>
                     {contentCount} item{contentCount !== 1 ? 's' : ''}
