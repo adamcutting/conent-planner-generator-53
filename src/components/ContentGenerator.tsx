@@ -4,22 +4,22 @@ import { Button } from "@/components/ui/button";
 import { Textarea } from "@/components/ui/textarea";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
-import { Badge } from "@/components/ui/badge";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { 
   Code, 
   SparklesIcon, 
   LightbulbIcon, 
   RotateCw, 
-  MessageSquare, 
   PencilIcon,
   SaveIcon,
-  BookIcon,
   HashIcon
 } from 'lucide-react';
 import { ScrollArea } from "@/components/ui/scroll-area";
 import { ContentPlanItem } from '@/utils/calendarUtils';
-import { contentPrompts, generateContentFromPrompt, GeneratedContent } from '@/utils/contentUtils';
+import { contentPrompts, GeneratedContent } from '@/utils/contentUtils';
+import { generateContentWithOpenAI, isApiKeySet } from '@/utils/openaiUtils';
+import OpenAISetup from './OpenAISetup';
+import { useToast } from '@/components/ui/use-toast';
 
 interface ContentGeneratorProps {
   contentItem?: ContentPlanItem;
@@ -28,6 +28,7 @@ interface ContentGeneratorProps {
 }
 
 const ContentGenerator: React.FC<ContentGeneratorProps> = ({ contentItem, onSave, onClose }) => {
+  const { toast } = useToast();
   const [contentType, setContentType] = useState<string>(contentItem?.contentType || 'blog');
   const [prompt, setPrompt] = useState<string>('');
   const [customPrompt, setCustomPrompt] = useState<string>('');
@@ -38,6 +39,7 @@ const ContentGenerator: React.FC<ContentGeneratorProps> = ({ contentItem, onSave
   const [title, setTitle] = useState<string>(contentItem?.title || '');
   const [content, setContent] = useState<string>('');
   const [isGenerating, setIsGenerating] = useState<boolean>(false);
+  const [openAIConfigured, setOpenAIConfigured] = useState<boolean>(isApiKeySet());
   
   // Setup the initial prompt based on content type and keyword
   useEffect(() => {
@@ -53,18 +55,40 @@ const ContentGenerator: React.FC<ContentGeneratorProps> = ({ contentItem, onSave
     setPrompt(promptTemplate.replace('{KEYWORD}', selectedKeyword));
   };
   
-  const handleGenerateContent = () => {
+  const handleGenerateContent = async () => {
+    if (!openAIConfigured) {
+      toast({
+        title: "OpenAI API Key Required",
+        description: "Please configure your OpenAI API key to generate content",
+        variant: "destructive"
+      });
+      return;
+    }
+    
     setIsGenerating(true);
     
-    // Simulate a delay for content generation
-    setTimeout(() => {
+    try {
       const promptToUse = customPrompt || prompt;
-      const generated = generateContentFromPrompt(promptToUse, selectedKeyword);
+      const generated = await generateContentWithOpenAI(promptToUse, selectedKeyword);
+      
       setGeneratedContent(generated);
       setTitle(generated.title);
       setContent(generated.content);
+      
+      toast({
+        title: "Content Generated",
+        description: "AI-generated content is ready for editing"
+      });
+    } catch (error) {
+      console.error('Error generating content:', error);
+      toast({
+        title: "Generation Failed",
+        description: error instanceof Error ? error.message : "Failed to generate content",
+        variant: "destructive"
+      });
+    } finally {
       setIsGenerating(false);
-    }, 1500);
+    }
   };
   
   const handleSave = () => {
@@ -82,6 +106,12 @@ const ContentGenerator: React.FC<ContentGeneratorProps> = ({ contentItem, onSave
           Close
         </Button>
       </div>
+      
+      {!openAIConfigured && (
+        <div className="mb-6">
+          <OpenAISetup onKeyConfigured={() => setOpenAIConfigured(true)} />
+        </div>
+      )}
       
       <Tabs defaultValue="generator" className="w-full">
         <TabsList className="grid grid-cols-2 mb-4">

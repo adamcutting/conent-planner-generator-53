@@ -1,5 +1,5 @@
 
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
@@ -8,6 +8,8 @@ import { Card, CardContent, CardHeader, CardTitle, CardDescription, CardFooter }
 import { SparklesIcon, Code, Upload, Wand2, Send } from 'lucide-react';
 import { useToast } from "@/components/ui/use-toast";
 import { ScrollArea } from "@/components/ui/scroll-area";
+import { generateContentWithOpenAI, isApiKeySet } from '@/utils/openaiUtils';
+import OpenAISetup from '@/components/OpenAISetup';
 
 interface EmailTemplateDesignerProps {
   onClose?: () => void;
@@ -29,6 +31,7 @@ const EmailTemplateDesigner: React.FC<EmailTemplateDesignerProps> = ({ onClose }
   const [isGenerating, setIsGenerating] = useState<boolean>(false);
   const [generatedTemplate, setGeneratedTemplate] = useState<EmailTemplate | null>(null);
   const [previewMode, setPreviewMode] = useState<'html' | 'preview'>('preview');
+  const [openAIConfigured, setOpenAIConfigured] = useState<boolean>(isApiKeySet());
 
   const handleTemplateUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
     if (e.target.files && e.target.files[0]) {
@@ -40,20 +43,45 @@ const EmailTemplateDesigner: React.FC<EmailTemplateDesignerProps> = ({ onClose }
     }
   };
 
-  const generateTemplate = () => {
+  const generateTemplate = async () => {
+    if (!openAIConfigured) {
+      toast({
+        title: "OpenAI API Key Required",
+        description: "Please configure your OpenAI API key to generate email templates",
+        variant: "destructive"
+      });
+      return;
+    }
+    
     setIsGenerating(true);
     
-    // Simulate AI email template generation
-    setTimeout(() => {
-      const newTemplate: EmailTemplate = {
-        subject: subject || "DataHQ - Your Data Partner",
-        previewText: "Discover how clean data can transform your business outcomes",
-        html: `<!DOCTYPE html>
+    // Prepare the prompt for OpenAI
+    const prompt = `
+Create an HTML email template with the following specifications:
+
+${subject ? `Subject line: ${subject}` : 'Create an appropriate subject line'}
+${colors ? `Brand colors: ${colors}` : 'Use appropriate brand colors'}
+${keyMessage ? `Key message: ${keyMessage}` : 'Include a compelling key message'}
+${ctas ? `Call-to-actions: ${ctas}` : 'Include appropriate call-to-action buttons'}
+
+The email should be responsive, mobile-friendly, and follow email best practices. 
+Include the HTML code with inline CSS for maximum compatibility.
+Also provide a preview text that will appear in the recipient's inbox.
+`;
+
+    try {
+      const generated = await generateContentWithOpenAI(prompt, subject || 'email template');
+      
+      // Extract HTML content from the generated text
+      // This is a simple extraction that looks for HTML code between triple backticks
+      const htmlMatch = generated.content.match(/```html\n([\s\S]*?)\n```/);
+      const htmlContent = htmlMatch ? htmlMatch[1] : `
+<!DOCTYPE html>
 <html lang="en">
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>${subject || "DataHQ - Your Data Partner"}</title>
+  <title>${subject || "Email Template"}</title>
   <style>
     body { 
       font-family: Arial, sans-serif; 
@@ -104,39 +132,57 @@ const EmailTemplateDesigner: React.FC<EmailTemplateDesignerProps> = ({ onClose }
       <img src="https://www.datahq.co.uk/wp-content/uploads/2021/07/datahq-logo-light.png" alt="DataHQ Logo" class="logo">
     </div>
     <div class="content">
-      <h1>${subject || "Clean data for better business outcomes"}</h1>
-      <p>Hello from the DataHQ team,</p>
-      <p>${keyMessage || "Are you struggling with inaccurate or incomplete customer data? DataHQ provides industry-leading data cleansing and enhancement services to help you reach the right customers with the right message."}</p>
+      <h1>${subject || "Email Title"}</h1>
+      <p>Hello from the team,</p>
+      <p>${keyMessage || generated.content.substring(0, 200)}</p>
       <p>Our services can help you:</p>
       <ul>
-        <li>Improve the accuracy of your customer data</li>
-        <li>Enhance your marketing effectiveness</li>
-        <li>Reach more qualified prospects</li>
-        <li>Reduce wasted marketing spend</li>
+        <li>Benefit one</li>
+        <li>Benefit two</li>
+        <li>Benefit three</li>
+        <li>Benefit four</li>
       </ul>
-      <p>Let us show you how quality data can transform your marketing efforts.</p>
+      <p>Let us show you how we can help.</p>
       <div style="text-align: center;">
-        <a href="${ctas.split(',')[0] || 'https://www.datahq.co.uk/contact-us/'}" class="cta-button">${ctas.split(',')[1] || 'Get in touch today'}</a>
+        <a href="${ctas.split(',')[0] || '#'}" class="cta-button">${ctas.split(',')[1] || 'Get in touch today'}</a>
       </div>
     </div>
     <div class="footer">
-      <p>© 2023 DataHQ Ltd. All rights reserved.</p>
-      <p>123 Data Street, London, UK</p>
+      <p>© ${new Date().getFullYear()} Company Ltd. All rights reserved.</p>
+      <p>123 Street, City, Country</p>
       <p><a href="#">Unsubscribe</a> | <a href="#">Privacy Policy</a></p>
     </div>
   </div>
 </body>
-</html>`
+</html>`;
+
+      // Extract or generate preview text
+      const previewTextMatch = generated.content.match(/Preview text: "(.*?)"/);
+      const previewText = previewTextMatch ? previewTextMatch[1] : "Discover how we can help your business grow";
+      
+      // Create the email template
+      const newTemplate: EmailTemplate = {
+        subject: subject || generated.title,
+        previewText,
+        html: htmlContent
       };
       
       setGeneratedTemplate(newTemplate);
-      setIsGenerating(false);
       
       toast({
         title: "Email template generated",
         description: "Your AI-designed email template is ready to preview and use",
       });
-    }, 2000);
+    } catch (error) {
+      console.error('Error generating email template:', error);
+      toast({
+        title: "Generation Failed",
+        description: error instanceof Error ? error.message : "Failed to generate email template",
+        variant: "destructive"
+      });
+    } finally {
+      setIsGenerating(false);
+    }
   };
 
   const copyHtml = () => {
@@ -158,6 +204,22 @@ const EmailTemplateDesigner: React.FC<EmailTemplateDesignerProps> = ({ onClose }
           Fill in as many fields as you want - the AI will handle the rest.
         </p>
       </div>
+
+      {!openAIConfigured && (
+        <div className="mb-8">
+          <Card>
+            <CardHeader>
+              <CardTitle>Configure OpenAI</CardTitle>
+              <CardDescription>
+                Set up your OpenAI API key to generate email templates
+              </CardDescription>
+            </CardHeader>
+            <CardContent>
+              <OpenAISetup onKeyConfigured={() => setOpenAIConfigured(true)} />
+            </CardContent>
+          </Card>
+        </div>
+      )}
 
       <div className="flex flex-col gap-6">
         <Card>
@@ -232,7 +294,7 @@ const EmailTemplateDesigner: React.FC<EmailTemplateDesignerProps> = ({ onClose }
           <CardFooter>
             <Button 
               onClick={generateTemplate} 
-              disabled={isGenerating} 
+              disabled={isGenerating || !openAIConfigured} 
               className="w-full"
             >
               {isGenerating ? (
