@@ -1,3 +1,4 @@
+
 import React, { useState, useEffect } from 'react';
 import { Button } from "@/components/ui/button";
 import { Textarea } from "@/components/ui/textarea";
@@ -173,7 +174,7 @@ const ContentGenerator: React.FC<ContentGeneratorProps> = ({ contentItem, onSave
                   onClick={() => handlePromptSelect(promptTemplate)}
                   className="p-2 rounded-md mb-1 cursor-pointer hover:bg-secondary"
                 >
-                  {promptTemplate.replace('{KEYWORD}', selectedKeyword)}
+                  {promptTemplate.replace('{KEYWORD}', selectedKeyword || 'keyword')}
                 </div>
               ))}
             </ScrollArea>
@@ -192,7 +193,7 @@ const ContentGenerator: React.FC<ContentGeneratorProps> = ({ contentItem, onSave
           
           <Button
             onClick={handleGenerateContent}
-            disabled={isGenerating || (!prompt && !customPrompt) || !selectedKeyword}
+            disabled={isGenerating || !selectedKeyword}
             className="w-full"
           >
             {isGenerating ? (

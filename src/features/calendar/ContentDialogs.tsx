@@ -1,6 +1,6 @@
 
 import React from 'react';
-import { Dialog, DialogContent } from "@/components/ui/dialog";
+import { Dialog, DialogContent, DialogTitle } from "@/components/ui/dialog";
 import EmailSettings from '@/components/EmailSettings';
 import ContentGenerator from '@/components/ContentGenerator';
 import { ContentPlanItem } from '@/utils/calendarUtils';
@@ -28,12 +28,14 @@ const ContentDialogs: React.FC<ContentDialogsProps> = ({
     <>
       <Dialog open={showEmailSettings} onOpenChange={setShowEmailSettings}>
         <DialogContent className="sm:max-w-md">
+          <DialogTitle className="sr-only">Email Settings</DialogTitle>
           <EmailSettings onClose={() => setShowEmailSettings(false)} />
         </DialogContent>
       </Dialog>
       
       <Dialog open={showContentGenerator} onOpenChange={setShowContentGenerator}>
         <DialogContent className="sm:max-w-[800px] p-0">
+          <DialogTitle className="sr-only">Content Generator</DialogTitle>
           <ContentGenerator 
             contentItem={editingContentItem}
             onSave={onSaveContent}

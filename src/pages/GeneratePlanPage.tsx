@@ -6,11 +6,14 @@ import GenerateTabContent from '@/features/calendar/GenerateTabContent';
 import { generateContentPlanFromKeywords, getStartDate } from '@/utils/calendarUtils';
 import { saveContentPlan } from '@/utils/contentUtils';
 import { useWebsite } from '@/contexts/WebsiteContext';
+import { isApiKeySet } from '@/utils/openaiUtils';
+import OpenAISetup from '@/components/OpenAISetup';
 
 const GeneratePlanPage = () => {
   const { toast } = useToast();
   const navigate = useNavigate();
   const { selectedWebsite } = useWebsite();
+  const [openAIConfigured] = React.useState<boolean>(isApiKeySet());
   
   const handleGeneratePlan = (
     keywords: string[], 
@@ -50,6 +53,12 @@ const GeneratePlanPage = () => {
           Create a new content plan for your {selectedWebsite.name} marketing calendar
         </p>
       </header>
+      
+      {!openAIConfigured && (
+        <div className="mb-6">
+          <OpenAISetup />
+        </div>
+      )}
       
       <GenerateTabContent onGeneratePlan={handleGeneratePlan} />
     </div>
