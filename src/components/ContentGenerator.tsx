@@ -1,4 +1,3 @@
-
 import React, { useState, useEffect } from 'react';
 import { Button } from "@/components/ui/button";
 import { Textarea } from "@/components/ui/textarea";
@@ -19,7 +18,7 @@ import { ContentPlanItem } from '@/utils/calendarUtils';
 import { contentPrompts, GeneratedContent } from '@/utils/contentUtils';
 import { generateContentWithOpenAI, isApiKeySet } from '@/utils/openaiUtils';
 import OpenAISetup from './OpenAISetup';
-import { useToast } from '@/components/ui/use-toast';
+import { useToast } from '@/hooks/use-toast';
 
 interface ContentGeneratorProps {
   contentItem?: ContentPlanItem;
@@ -56,6 +55,15 @@ const ContentGenerator: React.FC<ContentGeneratorProps> = ({ contentItem, onSave
   };
   
   const handleGenerateContent = async () => {
+    if (!selectedKeyword) {
+      toast({
+        title: "Keyword Required",
+        description: "Please enter a target keyword to generate content",
+        variant: "destructive"
+      });
+      return;
+    }
+    
     if (!openAIConfigured) {
       toast({
         title: "OpenAI API Key Required",
@@ -69,6 +77,7 @@ const ContentGenerator: React.FC<ContentGeneratorProps> = ({ contentItem, onSave
     
     try {
       const promptToUse = customPrompt || prompt;
+      console.log('Generating content with prompt:', promptToUse);
       const generated = await generateContentWithOpenAI(promptToUse, selectedKeyword);
       
       setGeneratedContent(generated);
