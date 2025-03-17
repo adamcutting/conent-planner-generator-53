@@ -1,3 +1,4 @@
+
 import React, { useState, useEffect } from 'react';
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -112,17 +113,22 @@ const EmailSettings: React.FC<EmailSettingsProps> = ({ onClose }) => {
     setIsSending(true);
     
     try {
+      toast({
+        title: "Sending test email",
+        description: "Attempting to send test email via Supabase...",
+      });
+      
       const success = await sendTestEmail(testEmail);
       
       if (success) {
         toast({
-          title: "Test email requested",
-          description: "A test email has been requested to be sent to acutting@datahq.co.uk",
+          title: "Email sent successfully",
+          description: "A test email has been sent to acutting@datahq.co.uk",
         });
       } else {
         toast({
           title: "Failed to send email",
-          description: "Could not send the test email. Please check your connection and try again.",
+          description: "Could not send the test email. Please check console for details.",
           variant: "destructive",
         });
       }

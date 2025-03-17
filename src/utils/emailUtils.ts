@@ -234,25 +234,97 @@ export const emailTemplates = {
   }
 };
 
-// Import the client-side email sending function
-import { sendMailFromClient, sendTestEmail } from './nodeMailer';
+// Import supabase client
+import { supabase } from "@/integrations/supabase/client";
 
-// Function to send an email using the client-side implementation
-export const sendEmail = async ({ to, subject, html }: { to: string, subject: string, html: string }): Promise<boolean> => {
+// Function to send an email using the Supabase Edge Function
+export const sendEmail = async ({ to, subject, html, type = "notification" }: { 
+  to: string, 
+  subject: string, 
+  html: string,
+  type?: string 
+}): Promise<boolean> => {
   console.log('Sending email to:', to);
   console.log('Email subject:', subject);
   
   try {
-    // Use the client-side email sending function
-    return await sendMailFromClient(to, subject, html);
+    // Call the Supabase Edge Function
+    const { data, error } = await supabase.functions.invoke("send-email", {
+      body: {
+        to,
+        subject,
+        html,
+        type
+      }
+    });
+
+    if (error) {
+      console.error('Error from Edge Function:', error);
+      return false;
+    }
+
+    console.log('Email sent successfully:', data);
+    return true;
   } catch (error) {
     console.error('Error sending email:', error);
     return false;
   }
 };
 
-// Export the test email function for direct access
-export { sendTestEmail };
+// Function to send a test email
+export const sendTestEmail = async (emailAddress: string): Promise<boolean> => {
+  // Log the attempt to send a test email
+  console.log(`Sending test email to ${emailAddress} with SMTP details:`);
+  console.log(`Host: ${emailConfig.host}`);
+  console.log(`Port: ${emailConfig.port}`);
+  console.log(`User: ${emailConfig.auth.user}`);
+  
+  const testHtml = `
+    <!DOCTYPE html>
+    <html>
+    <head>
+      <meta charset="UTF-8">
+      <title>Content Calendar Test Email</title>
+      <style>
+        body { font-family: Arial, sans-serif; line-height: 1.6; color: #333; }
+        .container { max-width: 600px; margin: 0 auto; padding: 20px; }
+        .header { background-color: #321947; padding: 20px; text-align: center; color: white; }
+        .content { padding: 20px; background-color: #f9f9f9; }
+        .footer { padding: 10px; text-align: center; font-size: 12px; color: #666; }
+      </style>
+    </head>
+    <body>
+      <div class="container">
+        <div class="header">
+          <h1>Content Calendar - Test Email</h1>
+        </div>
+        <div class="content">
+          <p>Hello,</p>
+          <p>This is a test email from your Content Calendar application.</p>
+          <p>SMTP Details:</p>
+          <ul>
+            <li>Host: ${emailConfig.host}</li>
+            <li>Port: ${emailConfig.port}</li>
+            <li>User: ${emailConfig.auth.user}</li>
+          </ul>
+          <p>If you're receiving this email, it means the email configuration is working correctly.</p>
+        </div>
+        <div class="footer">
+          <p>© ${new Date().getFullYear()} DataHQ Ltd. All rights reserved.</p>
+        </div>
+      </div>
+    </body>
+    </html>
+  `;
+  
+  // Send the test email using the Edge Function
+  return await sendEmail({
+    to: emailAddress,
+    subject: 'Content Calendar - Test Email',
+    html: testHtml,
+    type: 'test'
+  });
+};
 
 // Function to check for due content items and send reminders
 export const checkAndSendReminders = async (
