@@ -73,14 +73,16 @@ Lorem ipsum dolor sit amet, consectetur adipiscing elit. Sed do eiusmod tempor i
 
 // Function to store and retrieve email settings in localStorage
 export const emailSettings = {
-  save: (email: string, daysBeforeDue: number) => {
+  save: (email: string, daysBeforeDue: number, weeklySummary: boolean = false) => {
     localStorage.setItem('contentCalendarEmail', email);
     localStorage.setItem('contentCalendarNotifyDays', daysBeforeDue.toString());
+    localStorage.setItem('contentCalendarWeeklySummary', weeklySummary ? 'true' : 'false');
   },
   get: () => {
     return {
       email: localStorage.getItem('contentCalendarEmail') || '',
-      daysBeforeDue: parseInt(localStorage.getItem('contentCalendarNotifyDays') || '1')
+      daysBeforeDue: parseInt(localStorage.getItem('contentCalendarNotifyDays') || '1'),
+      weeklySummary: localStorage.getItem('contentCalendarWeeklySummary') === 'true'
     };
   }
 };

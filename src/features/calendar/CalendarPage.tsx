@@ -1,3 +1,4 @@
+
 import React, { useState, useEffect } from 'react';
 import { useToast } from "@/components/ui/use-toast";
 import CalendarTabContent from './CalendarTabContent';
@@ -8,7 +9,8 @@ import {
   generateContentPlanFromKeywords, 
   getStartDate
 } from '@/utils/calendarUtils';
-import { saveContentPlan, loadContentPlan } from '@/utils/contentUtils';
+import { saveContentPlan, loadContentPlan, emailSettings } from '@/utils/contentUtils';
+import { checkAndSendReminders } from '@/utils/emailUtils';
 import { Button } from "@/components/ui/button";
 import { SettingsIcon, PlusIcon } from 'lucide-react';
 import { useWebsite } from '@/contexts/WebsiteContext';
@@ -31,6 +33,35 @@ const CalendarPage: React.FC = () => {
       setContentPlan(initialPlan);
       saveContentPlan(initialPlan);
     }
+    
+    // Check for email reminders that need to be sent
+    const settings = emailSettings.get();
+    if (settings.email) {
+      // Send initial check on load
+      checkAndSendReminders(
+        savedPlan || [], 
+        settings.email, 
+        settings.daysBeforeDue
+      );
+      
+      // Clear any existing intervals (to prevent duplicates if component remounts)
+      if (window.reminderCheckInterval) {
+        clearInterval(window.reminderCheckInterval);
+      }
+      
+      // Check for reminders every hour (in a real app, this would be server-side)
+      window.reminderCheckInterval = setInterval(() => {
+        const contentPlan = loadContentPlan() || [];
+        checkAndSendReminders(contentPlan, settings.email, settings.daysBeforeDue);
+      }, 60 * 60 * 1000); // Every hour
+    }
+    
+    // Cleanup interval when component unmounts
+    return () => {
+      if (window.reminderCheckInterval) {
+        clearInterval(window.reminderCheckInterval);
+      }
+    };
   }, []);
   
   useEffect(() => {
@@ -148,5 +179,13 @@ const CalendarPage: React.FC = () => {
     </div>
   );
 };
+
+// For TypeScript
+declare global {
+  interface Window {
+    reminderCheckInterval: any;
+    weeklySummaryInterval: any;
+  }
+}
 
 export default CalendarPage;
