@@ -1,4 +1,3 @@
-
 import React, { useState, useEffect } from 'react';
 import { useToast } from "@/components/ui/use-toast";
 import CalendarTabContent from './CalendarTabContent';
@@ -11,7 +10,7 @@ import {
 } from '@/utils/calendarUtils';
 import { saveContentPlan, loadContentPlan, emailSettings } from '@/utils/contentUtils';
 import { 
-  getContentPlanItems,
+  loadContentPlanItems,
   addContentPlanItem,
   updateContentPlanItem,
   deleteContentPlanItem
@@ -40,7 +39,7 @@ const CalendarPage: React.FC = () => {
       
       if (user && selectedWebsite) {
         // If user is logged in, load from Supabase
-        const items = await getContentPlanItems(selectedWebsite.id);
+        const items = await loadContentPlanItems(user.id, selectedWebsite.id);
         setContentPlan(items);
       } else {
         // If not logged in, fall back to localStorage
