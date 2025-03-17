@@ -3,6 +3,7 @@ import React from 'react';
 import { Link, useLocation } from 'react-router-dom';
 import { WebsiteSwitcher } from '@/components/WebsiteSwitcher';
 import { useWebsite } from '@/contexts/WebsiteContext';
+import UserProfileDropdown from './UserProfileDropdown';
 
 const AppHeader = () => {
   const location = useLocation();
@@ -15,9 +16,12 @@ const AppHeader = () => {
         <div className="container mx-auto">
           <ul className="flex flex-row gap-4 justify-end text-sm mr-2.5">
             <li>
-              <a href="#" className="transition-colors duration-300 hover:text-datahq-yellow font-semibold">
+              <Link to="/about" className="transition-colors duration-300 hover:text-datahq-yellow font-semibold">
                 About
-              </a>
+              </Link>
+            </li>
+            <li className="ml-2">
+              <UserProfileDropdown />
             </li>
           </ul>
         </div>
@@ -44,6 +48,10 @@ const AppHeader = () => {
             {/* Right side elements - Website Switcher only */}
             <div className="lg:order-3 ml-auto lg:ml-0 flex items-center gap-4 xl:gap-6">
               <WebsiteSwitcher />
+              {/* Show UserProfileDropdown in mobile layout */}
+              <div className="lg:hidden">
+                <UserProfileDropdown />
+              </div>
             </div>
 
             {/* Main Navigation - switching the order of Content Calendar and Generate Plan */}
@@ -99,6 +107,11 @@ const AppHeader = () => {
                   location.pathname === "/email" ? "bg-muted text-datahq-brightmagenta" : ""
                 }`}>
                   Email
+                </Link>
+                <Link to="/about" className={`px-3 py-2 text-sm font-medium rounded-md ${
+                  location.pathname === "/about" ? "bg-muted text-datahq-brightmagenta" : ""
+                }`}>
+                  About
                 </Link>
               </div>
             </div>
