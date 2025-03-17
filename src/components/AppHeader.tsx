@@ -15,11 +15,6 @@ const AppHeader = () => {
           <ul className="flex flex-row gap-4 justify-end text-sm mr-2.5">
             <li>
               <a href="#" className="transition-colors duration-300 hover:text-datahq-yellow font-semibold">
-                Demo
-              </a>
-            </li>
-            <li>
-              <a href="#" className="transition-colors duration-300 hover:text-datahq-yellow font-semibold">
                 About
               </a>
             </li>
