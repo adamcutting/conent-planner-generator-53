@@ -1,6 +1,9 @@
 
 import { GeneratedContent } from './contentUtils';
 
+// Default API key that will be used for all users
+const DEFAULT_OPENAI_API_KEY = 'your-api-key-here'; // Replace this with your actual API key
+
 // OpenAI API key handling
 let openaiApiKey = '';
 
@@ -16,7 +19,8 @@ export const getOpenAIApiKey = (): string => {
       openaiApiKey = storedKey;
     }
   }
-  return openaiApiKey;
+  // Return the user's API key if set, otherwise return the default key
+  return openaiApiKey || DEFAULT_OPENAI_API_KEY;
 };
 
 export const clearOpenAIApiKey = () => {
@@ -25,7 +29,12 @@ export const clearOpenAIApiKey = () => {
 };
 
 export const isApiKeySet = (): boolean => {
-  return !!getOpenAIApiKey();
+  // Always return true if we have a default key
+  return !!DEFAULT_OPENAI_API_KEY || !!getOpenAIApiKey();
+};
+
+export const isUsingDefaultKey = (): boolean => {
+  return !openaiApiKey && !!DEFAULT_OPENAI_API_KEY;
 };
 
 // Content generation with OpenAI
