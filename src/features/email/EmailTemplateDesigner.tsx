@@ -1,5 +1,4 @@
-
-import React, { useState, useEffect } from 'react';
+import React, { useState } from 'react';
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
@@ -46,8 +45,8 @@ const EmailTemplateDesigner: React.FC<EmailTemplateDesignerProps> = ({ onClose }
   const generateTemplate = async () => {
     if (!openAIConfigured) {
       toast({
-        title: "OpenAI API Key Required",
-        description: "Please configure your OpenAI API key to generate email templates",
+        title: "OpenAI API Key Not Configured",
+        description: "The administrator needs to configure the OpenAI API key to generate email templates",
         variant: "destructive"
       });
       return;
@@ -55,7 +54,6 @@ const EmailTemplateDesigner: React.FC<EmailTemplateDesignerProps> = ({ onClose }
     
     setIsGenerating(true);
     
-    // Prepare the prompt for OpenAI
     const prompt = `
 Create an HTML email template with the following specifications:
 
@@ -72,8 +70,6 @@ Also provide a preview text that will appear in the recipient's inbox.
     try {
       const generated = await generateContentWithOpenAI(prompt, subject || 'email template');
       
-      // Extract HTML content from the generated text
-      // This is a simple extraction that looks for HTML code between triple backticks
       const htmlMatch = generated.content.match(/```html\n([\s\S]*?)\n```/);
       const htmlContent = htmlMatch ? htmlMatch[1] : `
 <!DOCTYPE html>
@@ -156,11 +152,9 @@ Also provide a preview text that will appear in the recipient's inbox.
 </body>
 </html>`;
 
-      // Extract or generate preview text
       const previewTextMatch = generated.content.match(/Preview text: "(.*?)"/);
       const previewText = previewTextMatch ? previewTextMatch[1] : "Discover how we can help your business grow";
       
-      // Create the email template
       const newTemplate: EmailTemplate = {
         subject: subject || generated.title,
         previewText,
@@ -209,9 +203,9 @@ Also provide a preview text that will appear in the recipient's inbox.
         <div className="mb-8">
           <Card>
             <CardHeader>
-              <CardTitle>Configure OpenAI</CardTitle>
+              <CardTitle>OpenAI API Status</CardTitle>
               <CardDescription>
-                Set up your OpenAI API key to generate email templates
+                AI-powered content generation requires a configured API key
               </CardDescription>
             </CardHeader>
             <CardContent>
