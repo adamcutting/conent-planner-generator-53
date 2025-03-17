@@ -39,7 +39,7 @@ const CalendarView: React.FC<CalendarViewProps> = ({ contentPlan, onSelectDate, 
   };
 
   return (
-    <div className="glass-panel rounded-xl p-4 animate-fade-in h-full">
+    <div className="glass-panel rounded-xl p-4 animate-fade-in h-full flex flex-col">
       <div className="flex justify-between items-center mb-6">
         <h2 className="text-xl font-semibold flex items-center text-datahq-charcoal">
           <CalendarIcon className="mr-2 h-5 w-5 text-datahq-blue" />
@@ -63,7 +63,7 @@ const CalendarView: React.FC<CalendarViewProps> = ({ contentPlan, onSelectDate, 
         ))}
       </div>
       
-      <div className="grid grid-cols-7 gap-1">
+      <div className="grid grid-cols-7 gap-1 flex-grow">
         {calendarDays.map((day, i) => {
           const isCurrentMonth = isSameMonth(day, currentMonth);
           const isSelected = isSameDay(day, selectedDate);

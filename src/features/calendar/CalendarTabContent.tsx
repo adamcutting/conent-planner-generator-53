@@ -76,13 +76,11 @@ const CalendarTabContent: React.FC<CalendarTabContentProps> = ({
   return (
     <div className="grid grid-cols-1 lg:grid-cols-7 gap-6 h-full">
       <div className="lg:col-span-4 flex flex-col h-[calc(100vh-220px)]">
-        <div className="flex-grow overflow-auto">
-          <CalendarView 
-            contentPlan={contentPlan}
-            onSelectDate={setSelectedDate}
-            selectedDate={selectedDate}
-          />
-        </div>
+        <CalendarView 
+          contentPlan={contentPlan}
+          onSelectDate={setSelectedDate}
+          selectedDate={selectedDate}
+        />
         
         <div className="mt-6">
           <Button 
