@@ -33,6 +33,54 @@ export type Database = {
         }
         Relationships: []
       }
+      content_plan_items: {
+        Row: {
+          completed: boolean | null
+          content_style: string
+          content_type: string
+          created_at: string | null
+          description: string | null
+          due_date: string
+          id: string
+          keywords: string[] | null
+          objective: string | null
+          title: string
+          updated_at: string | null
+          user_id: string
+          website_id: string
+        }
+        Insert: {
+          completed?: boolean | null
+          content_style: string
+          content_type: string
+          created_at?: string | null
+          description?: string | null
+          due_date: string
+          id?: string
+          keywords?: string[] | null
+          objective?: string | null
+          title: string
+          updated_at?: string | null
+          user_id: string
+          website_id: string
+        }
+        Update: {
+          completed?: boolean | null
+          content_style?: string
+          content_type?: string
+          created_at?: string | null
+          description?: string | null
+          due_date?: string
+          id?: string
+          keywords?: string[] | null
+          objective?: string | null
+          title?: string
+          updated_at?: string | null
+          user_id?: string
+          website_id?: string
+        }
+        Relationships: []
+      }
       profiles: {
         Row: {
           avatar_url: string | null

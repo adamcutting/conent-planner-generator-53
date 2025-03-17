@@ -6,6 +6,9 @@ import { useToast } from "@/components/ui/use-toast";
 import CalendarView from '@/components/CalendarView';
 import ContentPlan from '@/components/ContentPlan';
 import { ContentPlanItem } from '@/utils/calendarUtils';
+import { addContentPlanItem } from '@/utils/contentPlanItems';
+import { useAuth } from '@/contexts/AuthContext';
+import { useWebsite } from '@/contexts/WebsiteContext';
 
 interface CalendarTabContentProps {
   contentPlan: ContentPlanItem[];
@@ -27,8 +30,10 @@ const CalendarTabContent: React.FC<CalendarTabContentProps> = ({
   onEditContent,
 }) => {
   const { toast } = useToast();
+  const { user } = useAuth();
+  const { selectedWebsite } = useWebsite();
 
-  const handleAddItem = () => {
+  const handleAddItem = async () => {
     const newItem: ContentPlanItem = {
       id: `new-${Date.now()}`,
       title: `New Content Item`,
@@ -41,11 +46,31 @@ const CalendarTabContent: React.FC<CalendarTabContentProps> = ({
       keywords: ['content']
     };
     
-    setContentPlan([...contentPlan, newItem]);
-    
-    toast({
-      description: "New content item added to your plan",
-    });
+    if (user && selectedWebsite) {
+      // Save to Supabase
+      const addedItem = await addContentPlanItem(newItem, user.id, selectedWebsite.id);
+      
+      if (addedItem) {
+        setContentPlan([...contentPlan, addedItem]);
+        
+        toast({
+          description: "New content item added to your plan",
+        });
+      } else {
+        toast({
+          title: "Add failed",
+          description: "Failed to add item. Please try again.",
+          variant: "destructive"
+        });
+      }
+    } else {
+      // Fallback to local save only
+      setContentPlan([...contentPlan, newItem]);
+      
+      toast({
+        description: "New content item added to your plan",
+      });
+    }
   };
 
   return (

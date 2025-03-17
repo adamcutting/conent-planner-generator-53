@@ -1,4 +1,3 @@
-
 // This file contains utility functions for content generation
 
 export interface GeneratedContent {
@@ -87,12 +86,12 @@ export const emailSettings = {
   }
 };
 
-// Store content plan in localStorage
+// These localStorage functions are kept for backward compatibility 
+// and fallback when user is not authenticated
 export const saveContentPlan = (contentPlan: any[]) => {
   localStorage.setItem('contentCalendarPlan', JSON.stringify(contentPlan));
 };
 
-// Retrieve content plan from localStorage
 export const loadContentPlan = () => {
   const saved = localStorage.getItem('contentCalendarPlan');
   return saved ? JSON.parse(saved) : null;
