@@ -10,10 +10,11 @@ import {
   DropdownMenuTrigger
 } from "@/components/ui/dropdown-menu";
 import { Button } from "@/components/ui/button";
-import { UserIcon, LogOut, Settings } from 'lucide-react';
+import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
+import { UserIcon, LogOut, Settings, User } from 'lucide-react';
 
 const UserProfileDropdown = () => {
-  const { user, signOut } = useAuth();
+  const { user, profile, signOut } = useAuth();
   const navigate = useNavigate();
 
   if (!user) {
@@ -29,11 +30,29 @@ const UserProfileDropdown = () => {
     navigate('/signin');
   };
 
+  const handleProfileClick = () => {
+    navigate('/profile');
+  };
+
+  const getInitials = () => {
+    if (profile?.display_name) {
+      return profile.display_name.substring(0, 2).toUpperCase();
+    }
+    return user.email ? user.email.substring(0, 2).toUpperCase() : 'U';
+  };
+
   return (
     <DropdownMenu>
       <DropdownMenuTrigger asChild>
         <Button variant="ghost" size="sm" className="relative h-8 w-8 rounded-full">
-          <UserIcon className="h-4 w-4" />
+          {profile?.avatar_url ? (
+            <Avatar className="h-8 w-8">
+              <AvatarImage src={profile.avatar_url} alt="Profile" />
+              <AvatarFallback>{getInitials()}</AvatarFallback>
+            </Avatar>
+          ) : (
+            <UserIcon className="h-4 w-4" />
+          )}
         </Button>
       </DropdownMenuTrigger>
       <DropdownMenuContent align="end" className="w-56">
@@ -41,6 +60,10 @@ const UserProfileDropdown = () => {
           <p className="text-sm font-medium">{user.email}</p>
         </div>
         <DropdownMenuSeparator />
+        <DropdownMenuItem className="cursor-pointer" onClick={handleProfileClick}>
+          <User className="mr-2 h-4 w-4" />
+          <span>Profile</span>
+        </DropdownMenuItem>
         <DropdownMenuItem className="cursor-pointer">
           <Settings className="mr-2 h-4 w-4" />
           <span>Settings</span>

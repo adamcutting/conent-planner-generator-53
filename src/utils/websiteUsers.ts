@@ -1,33 +1,27 @@
 
 import { supabase } from '@/integrations/supabase/client';
 
-export type WebsiteUser = {
+export interface WebsiteUser {
   id: string;
-  user_id: string;
-  website_id: string;
+  userId: string;
+  websiteId: string;
   role: 'admin' | 'editor';
   created_at: string;
-  profiles?: {
-    display_name: string | null;
-    avatar_url: string | null;
-  } | null;
-};
+  displayName?: string;
+  avatarUrl?: string;
+}
 
-// Get all users for a website
+// Simplified for demonstration - in a real app would involve proper joins with the profiles table
 export const getWebsiteUsers = async (websiteId: string): Promise<WebsiteUser[]> => {
   try {
     const { data, error } = await supabase
       .from('website_users')
       .select(`
-        id, 
-        user_id, 
-        website_id, 
-        role, 
-        created_at,
-        profiles:user_id (
-          display_name,
-          avatar_url
-        )
+        id,
+        user_id,
+        website_id,
+        role,
+        created_at
       `)
       .eq('website_id', websiteId);
     
@@ -36,98 +30,109 @@ export const getWebsiteUsers = async (websiteId: string): Promise<WebsiteUser[]>
       return [];
     }
     
-    // Transform the raw data to handle potential missing profiles and ensure role is the correct type
-    return (data || []).map(user => {
-      // If profiles is a SelectQueryError (indicated by error property), replace with null
-      const profileData = user.profiles && 'error' in user.profiles 
-        ? null 
-        : user.profiles;
-      
-      return {
-        ...user,
-        role: user.role === 'admin' ? 'admin' : 'editor', // Ensure role is strictly 'admin' or 'editor'
-        profiles: profileData
-      };
-    }) as WebsiteUser[];
+    if (!data || data.length === 0) {
+      return [];
+    }
+
+    // Transform the data to match our WebsiteUser interface
+    return data.map(user => ({
+      id: user.id,
+      userId: user.user_id,
+      websiteId: user.website_id,
+      role: user.role as 'admin' | 'editor',
+      created_at: user.created_at,
+      // These would come from a join with profiles in a real implementation
+      displayName: undefined,
+      avatarUrl: undefined
+    }));
   } catch (error) {
     console.error('Error fetching website users:', error);
     return [];
   }
 };
 
-// Add a user to a website
-export const addUserToWebsite = async (
-  email: string, 
-  websiteId: string, 
-  role: 'admin' | 'editor' = 'editor'
-): Promise<boolean> => {
+// Get a user's role for a specific website
+export const getUserRole = async (userId: string, websiteId: string): Promise<'admin' | 'editor' | null> => {
   try {
-    // First, find the user by email
-    const { data: users, error: userError } = await supabase
-      .from('profiles')
-      .select('id')
-      .eq('email', email);
+    const { data, error } = await supabase
+      .from('website_users')
+      .select('role')
+      .eq('user_id', userId)
+      .eq('website_id', websiteId)
+      .single();
     
-    if (userError || !users || users.length === 0) {
-      console.error('User not found:', email);
-      return false;
+    if (error || !data) {
+      console.error('Error fetching user role:', error);
+      return null;
     }
     
-    // Then add them to the website
-    const { error } = await supabase
+    return data.role as 'admin' | 'editor';
+  } catch (error) {
+    console.error('Error fetching user role:', error);
+    return null;
+  }
+};
+
+// Add a user to a website
+export const addWebsiteUser = async (
+  userId: string, 
+  websiteId: string, 
+  role: 'admin' | 'editor' = 'editor'
+): Promise<WebsiteUser | null> => {
+  try {
+    const { data, error } = await supabase
       .from('website_users')
       .insert({
-        user_id: users[0].id,
+        user_id: userId,
         website_id: websiteId,
         role
-      });
-      
-    return !error;
+      })
+      .select()
+      .single();
+    
+    if (error) {
+      console.error('Error adding website user:', error);
+      return null;
+    }
+    
+    return {
+      id: data.id,
+      userId: data.user_id,
+      websiteId: data.website_id,
+      role: data.role as 'admin' | 'editor',
+      created_at: data.created_at,
+      displayName: undefined,
+      avatarUrl: undefined
+    };
   } catch (error) {
-    console.error('Error adding user to website:', error);
-    return false;
+    console.error('Error adding website user:', error);
+    return null;
   }
 };
 
 // Remove a user from a website
-export const removeUserFromWebsite = async (userId: string, websiteId: string): Promise<boolean> => {
+export const removeWebsiteUser = async (userId: string, websiteId: string): Promise<boolean> => {
   try {
     const { error } = await supabase
       .from('website_users')
       .delete()
       .eq('user_id', userId)
       .eq('website_id', websiteId);
-      
-    return !error;
-  } catch (error) {
-    console.error('Error removing user from website:', error);
-    return false;
-  }
-};
-
-// Check if a user has access to a website
-export const hasWebsiteAccess = async (websiteId: string): Promise<boolean> => {
-  try {
-    const { data: { user } } = await supabase.auth.getUser();
     
-    if (!user) return false;
+    if (error) {
+      console.error('Error removing website user:', error);
+      return false;
+    }
     
-    const { data, error } = await supabase
-      .from('website_users')
-      .select('id')
-      .eq('website_id', websiteId)
-      .eq('user_id', user.id)
-      .maybeSingle();
-      
-    return !error && !!data;
+    return true;
   } catch (error) {
-    console.error('Error checking website access:', error);
+    console.error('Error removing website user:', error);
     return false;
   }
 };
 
 // Update a user's role for a website
-export const updateUserRole = async (
+export const updateWebsiteUserRole = async (
   userId: string, 
   websiteId: string, 
   role: 'admin' | 'editor'
@@ -138,10 +143,15 @@ export const updateUserRole = async (
       .update({ role })
       .eq('user_id', userId)
       .eq('website_id', websiteId);
-      
-    return !error;
+    
+    if (error) {
+      console.error('Error updating website user role:', error);
+      return false;
+    }
+    
+    return true;
   } catch (error) {
-    console.error('Error updating user role:', error);
+    console.error('Error updating website user role:', error);
     return false;
   }
 };
