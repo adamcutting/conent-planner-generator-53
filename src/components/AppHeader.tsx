@@ -14,7 +14,7 @@ const AppHeader = () => {
       {/* Top navigation bar - similar to datahq.co.uk */}
       <div className="hidden lg:block bg-datahq-purple text-[#F6F3ED] py-2">
         <div className="container mx-auto">
-          <ul className="flex flex-row gap-4 justify-end text-sm mr-2.5">
+          <ul className="flex flex-row gap-4 justify-end text-sm mr-2.5 items-center">
             <li>
               <Link to="/about" className="transition-colors duration-300 hover:text-datahq-yellow font-semibold">
                 About

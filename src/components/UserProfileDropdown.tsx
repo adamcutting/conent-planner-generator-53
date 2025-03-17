@@ -23,7 +23,7 @@ const UserProfileDropdown = () => {
         variant="ghost" 
         size="sm" 
         onClick={() => navigate('/signin')}
-        className="h-8 text-datahq-yellow hover:text-datahq-yellow/90 font-semibold"
+        className="transition-colors duration-300 hover:text-datahq-yellow font-semibold"
       >
         Sign In
       </Button>
