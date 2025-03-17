@@ -1,5 +1,6 @@
+
 import React, { useState } from 'react';
-import { Check, Globe, Plus } from 'lucide-react';
+import { Check, Globe, Plus, Trash2 } from 'lucide-react';
 import { Button } from "@/components/ui/button";
 import {
   DropdownMenu,
@@ -13,7 +14,7 @@ import { useWebsite, Website } from '@/contexts/WebsiteContext';
 import { useToast } from "@/components/ui/use-toast";
 
 export const WebsiteSwitcher: React.FC = () => {
-  const { selectedWebsite, setSelectedWebsite, websites, addWebsite } = useWebsite();
+  const { selectedWebsite, setSelectedWebsite, websites, addWebsite, removeWebsite } = useWebsite();
   const [newWebsiteUrl, setNewWebsiteUrl] = useState("");
   const [isOpen, setIsOpen] = useState(false);
   const { toast } = useToast();
@@ -31,6 +32,27 @@ export const WebsiteSwitcher: React.FC = () => {
         description: `Added ${newWebsiteUrl} to your websites list`,
       });
     }
+  };
+
+  const handleRemoveWebsite = (e: React.MouseEvent, websiteId: string, websiteName: string) => {
+    e.stopPropagation();
+    
+    // Don't allow removing the last website
+    if (websites.length <= 1) {
+      toast({
+        title: "Cannot remove website",
+        description: "You need at least one website in your list",
+        variant: "destructive"
+      });
+      return;
+    }
+    
+    removeWebsite(websiteId);
+    
+    toast({
+      title: "Website removed",
+      description: `Removed ${websiteName} from your websites list`,
+    });
   };
 
   return (
@@ -51,7 +73,7 @@ export const WebsiteSwitcher: React.FC = () => {
             <DropdownMenuItem
               key={website.id}
               onClick={() => setSelectedWebsite(website)}
-              className="flex items-center gap-2 min-w-[180px]"
+              className="flex items-center gap-2 min-w-[180px] group"
             >
               <div 
                 className="h-2 w-2 rounded-full" 
@@ -61,6 +83,15 @@ export const WebsiteSwitcher: React.FC = () => {
               {selectedWebsite.id === website.id && (
                 <Check className="h-4 w-4 ml-auto" />
               )}
+              <Button
+                variant="ghost" 
+                size="icon" 
+                className="h-6 w-6 ml-auto opacity-0 group-hover:opacity-100 transition-opacity"
+                onClick={(e) => handleRemoveWebsite(e, website.id, website.name)}
+                disabled={websites.length <= 1}
+              >
+                <Trash2 className="h-3 w-3 text-muted-foreground hover:text-destructive" />
+              </Button>
             </DropdownMenuItem>
           ))}
           

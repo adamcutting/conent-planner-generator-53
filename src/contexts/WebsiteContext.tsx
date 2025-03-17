@@ -42,6 +42,7 @@ interface WebsiteContextType {
   setSelectedWebsite: (website: Website) => void;
   websites: Website[];
   addWebsite: (url: string) => void;
+  removeWebsite: (id: string) => void;
 }
 
 const WebsiteContext = createContext<WebsiteContextType | undefined>(undefined);
@@ -72,13 +73,30 @@ export const WebsiteProvider = ({ children }: { children: ReactNode }) => {
     }
   };
 
+  // Remove a website by ID
+  const removeWebsite = (id: string) => {
+    // Don't allow removing the last website
+    if (websites.length <= 1) {
+      return;
+    }
+
+    const updatedWebsites = websites.filter(site => site.id !== id);
+    setWebsites(updatedWebsites);
+    
+    // If we're removing the currently selected website, select the first one
+    if (selectedWebsite.id === id) {
+      setSelectedWebsite(updatedWebsites[0]);
+    }
+  };
+
   return (
     <WebsiteContext.Provider 
       value={{ 
         selectedWebsite, 
         setSelectedWebsite, 
         websites, 
-        addWebsite 
+        addWebsite,
+        removeWebsite
       }}
     >
       {children}
