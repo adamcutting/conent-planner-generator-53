@@ -19,7 +19,12 @@ const UserProfileDropdown = () => {
 
   if (!user) {
     return (
-      <Button variant="outline" size="sm" onClick={() => navigate('/signin')}>
+      <Button 
+        variant="ghost" 
+        size="sm" 
+        onClick={() => navigate('/signin')}
+        className="h-8 text-datahq-yellow hover:text-datahq-yellow/90 font-semibold"
+      >
         Sign In
       </Button>
     );
