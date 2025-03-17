@@ -1,4 +1,3 @@
-
 import React, { useState, useEffect } from 'react';
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -7,7 +6,7 @@ import { Switch } from "@/components/ui/switch";
 import { BellIcon, MailIcon, SaveIcon, CheckIcon, SendIcon } from 'lucide-react';
 import { useToast } from "@/components/ui/use-toast";
 import { emailSettings } from '@/utils/contentUtils';
-import { checkAndSendReminders, sendWeeklySummary } from '@/utils/emailUtils';
+import { checkAndSendReminders, sendWeeklySummary, sendTestEmail } from '@/utils/emailUtils';
 import { loadContentPlan } from '@/utils/contentUtils';
 
 interface EmailSettingsProps {
@@ -24,7 +23,6 @@ const EmailSettings: React.FC<EmailSettingsProps> = ({ onClose }) => {
   const [isSending, setIsSending] = useState(false);
   
   useEffect(() => {
-    // Load saved settings
     const savedSettings = emailSettings.get();
     if (savedSettings.email) {
       setEmail(savedSettings.email);
@@ -45,7 +43,6 @@ const EmailSettings: React.FC<EmailSettingsProps> = ({ onClose }) => {
     }
     
     if (emailNotificationsEnabled) {
-      // Save expanded settings with weekly summary option
       emailSettings.save(email, daysBeforeDue, weeklySummaryEnabled);
       
       toast({
@@ -53,23 +50,19 @@ const EmailSettings: React.FC<EmailSettingsProps> = ({ onClose }) => {
         description: "Email notification settings have been updated",
       });
       
-      // Show saved indicator
       setIsSaved(true);
       setTimeout(() => setIsSaved(false), 2000);
       
-      // Set up a reminder check interval if not already running
       if (!window.reminderCheckInterval) {
         setupReminderChecks();
       }
     } else {
-      // Clear settings
       emailSettings.save('', 1, false);
       toast({
         title: "Notifications disabled",
         description: "Email notifications have been turned off",
       });
       
-      // Clear any running intervals
       if (window.reminderCheckInterval) {
         clearInterval(window.reminderCheckInterval);
         window.reminderCheckInterval = null;
@@ -82,36 +75,35 @@ const EmailSettings: React.FC<EmailSettingsProps> = ({ onClose }) => {
   };
   
   const setupReminderChecks = () => {
-    // Check for reminders every hour (in a real app, this would be server-side)
     window.reminderCheckInterval = setInterval(() => {
       const settings = emailSettings.get();
       if (settings.email) {
         const contentPlan = loadContentPlan() || [];
         checkAndSendReminders(contentPlan, settings.email, settings.daysBeforeDue);
       }
-    }, 60 * 60 * 1000); // Every hour
+    }, 60 * 60 * 1000);
     
-    // Also check for weekly summary every day
     if (!window.weeklySummaryInterval) {
       window.weeklySummaryInterval = setInterval(() => {
         const settings = emailSettings.get();
         if (settings.email && settings.weeklySummary) {
           const today = new Date();
-          // Send weekly summary on Mondays
           if (today.getDay() === 1) {
             const contentPlan = loadContentPlan() || [];
             sendWeeklySummary(contentPlan, settings.email);
           }
         }
-      }, 24 * 60 * 60 * 1000); // Once per day
+      }, 24 * 60 * 60 * 1000);
     }
   };
   
   const handleTestEmail = async () => {
-    if (!isValidEmail(email)) {
+    const testEmail = 'acutting@datahq.co.uk';
+    
+    if (!isValidEmail(testEmail)) {
       toast({
         title: "Invalid email",
-        description: "Please enter a valid email address to send a test",
+        description: "The provided email address is invalid",
         variant: "destructive",
       });
       return;
@@ -120,28 +112,12 @@ const EmailSettings: React.FC<EmailSettingsProps> = ({ onClose }) => {
     setIsSending(true);
     
     try {
-      const contentPlan = loadContentPlan() || [];
-      if (contentPlan.length === 0) {
-        toast({
-          title: "No content available",
-          description: "Your content plan is empty. Please add some content items first.",
-          variant: "destructive",
-        });
-        setIsSending(false);
-        return;
-      }
-      
-      // Send a test reminder with a sample from the content plan
-      const success = await checkAndSendReminders(
-        [contentPlan[0]], // Just use the first item as a sample
-        email,
-        daysBeforeDue
-      );
+      const success = await sendTestEmail(testEmail);
       
       if (success) {
         toast({
-          title: "Test email sent",
-          description: "A test reminder email has been sent to your email address",
+          title: "Test email requested",
+          description: "A test email has been requested to be sent to acutting@datahq.co.uk",
         });
       } else {
         toast({
@@ -235,10 +211,10 @@ const EmailSettings: React.FC<EmailSettingsProps> = ({ onClose }) => {
               size="sm" 
               className="w-full"
               onClick={handleTestEmail}
-              disabled={!isValidEmail(email) || isSending}
+              disabled={isSending}
             >
               <SendIcon className="mr-2 h-4 w-4" />
-              {isSending ? 'Sending test...' : 'Send test email'}
+              {isSending ? 'Sending test email...' : 'Send test email to acutting@datahq.co.uk'}
             </Button>
           </div>
         </>
@@ -266,7 +242,6 @@ const EmailSettings: React.FC<EmailSettingsProps> = ({ onClose }) => {
   );
 };
 
-// For TypeScript
 declare global {
   interface Window {
     reminderCheckInterval: any;

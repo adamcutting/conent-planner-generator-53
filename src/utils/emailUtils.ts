@@ -1,4 +1,3 @@
-
 // Email utilities for sending reminders and content
 
 export interface EmailConfig {
@@ -11,11 +10,11 @@ export interface EmailConfig {
   }
 }
 
-// Default email configuration with provided credentials
+// Email configuration with provided credentials
 export const emailConfig: EmailConfig = {
   host: 'mta.extendcp.co.uk',
   port: 587,
-  secure: false, // true for 465, false for other ports like 587
+  secure: false, // false for TLS - port 587
   auth: {
     user: 'businessleads@dhqbmail.co.uk',
     pass: 'Z6zJzn9vwmDJJJ'
@@ -235,49 +234,25 @@ export const emailTemplates = {
   }
 };
 
-interface SendEmailParams {
-  to: string;
-  subject: string;
-  html: string;
-}
+// Import the client-side email sending function
+import { sendMailFromClient, sendTestEmail } from './nodeMailer';
 
-// Function to send an email using browser's EmailJS service
-export const sendEmail = async ({ to, subject, html }: SendEmailParams): Promise<boolean> => {
+// Function to send an email using the client-side implementation
+export const sendEmail = async ({ to, subject, html }: { to: string, subject: string, html: string }): Promise<boolean> => {
   console.log('Sending email to:', to);
   console.log('Email subject:', subject);
   
   try {
-    // We'll use the Email API to send an email through a fake endpoint for now
-    // In a real environment, we would need a server component or a separate email service
-    // This would typically be a server-side call
-    const response = await fetch('https://api.emailjs.com/api/v1.0/email/send', {
-      method: 'POST',
-      headers: {
-        'Content-Type': 'application/json',
-      },
-      body: JSON.stringify({
-        service_id: 'smtp_service',
-        template_id: 'template_id',
-        user_id: 'user_id',
-        template_params: {
-          to_email: to,
-          subject: subject,
-          message_html: html,
-          smtp_host: emailConfig.host,
-          smtp_port: emailConfig.port,
-          smtp_user: emailConfig.auth.user,
-          smtp_pass: emailConfig.auth.pass
-        }
-      })
-    });
-    
-    console.log('Email send response:', response);
-    return response.ok;
+    // Use the client-side email sending function
+    return await sendMailFromClient(to, subject, html);
   } catch (error) {
     console.error('Error sending email:', error);
     return false;
   }
 };
+
+// Export the test email function for direct access
+export { sendTestEmail };
 
 // Function to check for due content items and send reminders
 export const checkAndSendReminders = async (
