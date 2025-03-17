@@ -63,7 +63,7 @@ const CalendarTabContent: React.FC<CalendarTabContentProps> = ({
           <Button 
             variant="outline" 
             onClick={handleAddItem}
-            className="w-full flex items-center"
+            className="w-full flex items-center justify-center"
           >
             <PlusIcon className="mr-2 h-4 w-4" />
             Add Item to {selectedDate.toLocaleDateString('en-US', { month: 'short', day: 'numeric' })}

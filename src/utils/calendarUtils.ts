@@ -1,5 +1,4 @@
-
-import { addDays, format, isSameDay, parseISO, startOfWeek, addWeeks, getDaysInMonth, startOfMonth } from 'date-fns';
+import { addDays, format, isSameDay, parseISO, startOfWeek, addWeeks, getDaysInMonth, startOfMonth, endOfMonth, endOfWeek } from 'date-fns';
 
 // Defining the Content Plan Item interface
 export interface ContentPlanItem {
@@ -19,15 +18,25 @@ export const getStartDate = (): Date => {
   return new Date(2025, 2, 3); // Month is 0-indexed, so 2 = March
 };
 
-// Function to generate dates for calendar view
+// Function to generate dates for calendar view - updating to show full month correctly
 export const generateCalendarDays = (currentDate: Date, view: 'month' | 'week'): Date[] => {
   if (view === 'week') {
     const start = startOfWeek(currentDate, { weekStartsOn: 1 });
     return Array.from({ length: 7 }, (_, i) => addDays(start, i));
   } else {
+    // Get the first day of month
     const firstDayOfMonth = startOfMonth(currentDate);
+    // Get the last day of month
+    const lastDayOfMonth = endOfMonth(currentDate);
+    
+    // Start from Monday of the week that contains the first day of month
     const startDay = startOfWeek(firstDayOfMonth, { weekStartsOn: 1 });
-    const daysInCalendar = 42; // 6 weeks
+    // End on Sunday of the week that contains the last day of month
+    const endDay = endOfWeek(lastDayOfMonth, { weekStartsOn: 1 });
+    
+    // Calculate the number of days to display
+    const daysInCalendar = Math.floor((endDay.getTime() - startDay.getTime()) / (1000 * 60 * 60 * 24)) + 1;
+    
     return Array.from({ length: daysInCalendar }, (_, i) => addDays(startDay, i));
   }
 };
