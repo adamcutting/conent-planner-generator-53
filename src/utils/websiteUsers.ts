@@ -7,6 +7,10 @@ export type WebsiteUser = {
   website_id: string;
   role: 'admin' | 'editor';
   created_at: string;
+  profiles?: {
+    display_name: string | null;
+    avatar_url: string | null;
+  } | null;
 };
 
 // Get all users for a website
@@ -32,7 +36,11 @@ export const getWebsiteUsers = async (websiteId: string): Promise<WebsiteUser[]>
       return [];
     }
     
-    return data || [];
+    // Transform the raw data to ensure role is the correct type
+    return (data || []).map(user => ({
+      ...user,
+      role: user.role === 'admin' ? 'admin' : 'editor' // Ensure role is strictly 'admin' or 'editor'
+    })) as WebsiteUser[];
   } catch (error) {
     console.error('Error fetching website users:', error);
     return [];
@@ -50,10 +58,9 @@ export const addUserToWebsite = async (
     const { data: users, error: userError } = await supabase
       .from('profiles')
       .select('id')
-      .eq('email', email)
-      .single();
+      .eq('email', email);
     
-    if (userError || !users) {
+    if (userError || !users || users.length === 0) {
       console.error('User not found:', email);
       return false;
     }
@@ -62,7 +69,7 @@ export const addUserToWebsite = async (
     const { error } = await supabase
       .from('website_users')
       .insert({
-        user_id: users.id,
+        user_id: users[0].id,
         website_id: websiteId,
         role
       });
@@ -93,11 +100,16 @@ export const removeUserFromWebsite = async (userId: string, websiteId: string): 
 // Check if a user has access to a website
 export const hasWebsiteAccess = async (websiteId: string): Promise<boolean> => {
   try {
+    const { data: { user } } = await supabase.auth.getUser();
+    
+    if (!user) return false;
+    
     const { data, error } = await supabase
       .from('website_users')
       .select('id')
       .eq('website_id', websiteId)
-      .single();
+      .eq('user_id', user.id)
+      .maybeSingle();
       
     return !error && !!data;
   } catch (error) {

@@ -38,11 +38,16 @@ export const acquireLock = async (contentId: string): Promise<boolean> => {
       }
     }
     
-    // Create a new lock
+    // Get the current user
+    const { data: { user } } = await supabase.auth.getUser();
+    if (!user) return false;
+    
+    // Create a new lock with the user_id
     const { error } = await supabase
       .from('content_locks')
       .insert({
         content_id: contentId,
+        user_id: user.id,
         // expires_at is set by default to now() + 10 minutes in the database
       });
     
