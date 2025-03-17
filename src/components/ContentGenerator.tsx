@@ -52,7 +52,10 @@ const ContentGenerator: React.FC<ContentGeneratorProps> = ({ contentItem, onSave
   }, [contentType, selectedKeyword]);
   
   const handlePromptSelect = (promptTemplate: string) => {
-    setPrompt(promptTemplate.replace('{KEYWORD}', selectedKeyword));
+    setPrompt(promptTemplate.replace('{KEYWORD}', selectedKeyword || 'keyword'));
+    // Add some console.log statements to help debug
+    console.log('Prompt template selected:', promptTemplate);
+    console.log('Setting prompt to:', promptTemplate.replace('{KEYWORD}', selectedKeyword || 'keyword'));
   };
   
   const handleGenerateContent = async () => {
@@ -169,13 +172,14 @@ const ContentGenerator: React.FC<ContentGeneratorProps> = ({ contentItem, onSave
             <Label>Prompt Templates</Label>
             <ScrollArea className="h-[100px] border rounded-md p-2 mt-1.5">
               {contentPrompts[contentType as keyof typeof contentPrompts]?.map((promptTemplate, idx) => (
-                <div 
+                <button 
                   key={idx}
+                  type="button"
                   onClick={() => handlePromptSelect(promptTemplate)}
-                  className="p-2 rounded-md mb-1 cursor-pointer hover:bg-secondary"
+                  className="w-full text-left p-2 rounded-md mb-1 cursor-pointer hover:bg-secondary"
                 >
                   {promptTemplate.replace('{KEYWORD}', selectedKeyword || 'keyword')}
-                </div>
+                </button>
               ))}
             </ScrollArea>
           </div>
