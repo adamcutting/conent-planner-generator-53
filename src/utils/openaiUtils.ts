@@ -2,7 +2,7 @@
 import { GeneratedContent } from './contentUtils';
 
 // Default API key that will be used for all users
-const DEFAULT_OPENAI_API_KEY = 'your-api-key-here'; // Replace this with your actual API key
+const DEFAULT_OPENAI_API_KEY = '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'; // Replace this with your actual API key
 
 // OpenAI API key handling
 export const getOpenAIApiKey = (): string => {
