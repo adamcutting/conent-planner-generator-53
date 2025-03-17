@@ -1,4 +1,3 @@
-
 import React, { useState, useEffect } from 'react';
 import { useToast } from "@/components/ui/use-toast";
 import CalendarTabContent from './CalendarTabContent';
@@ -12,9 +11,11 @@ import {
 import { saveContentPlan, loadContentPlan } from '@/utils/contentUtils';
 import { Button } from "@/components/ui/button";
 import { SettingsIcon, PlusIcon } from 'lucide-react';
+import { useWebsite } from '@/contexts/WebsiteContext';
 
 const CalendarPage: React.FC = () => {
   const { toast } = useToast();
+  const { selectedWebsite } = useWebsite();
   const [contentPlan, setContentPlan] = useState<ContentPlanItem[]>([]);
   const [selectedDate, setSelectedDate] = useState<Date>(getStartDate());
   const [showEmailSettings, setShowEmailSettings] = useState(false);
@@ -108,7 +109,7 @@ const CalendarPage: React.FC = () => {
       <header className="mb-8 animate-fade-in">
         <h1 className="text-3xl font-bold mb-2">Content Calendar</h1>
         <p className="text-muted-foreground">
-          Plan, create, and schedule your content for www.datahq.co.uk
+          Plan, create, and schedule your content for {selectedWebsite.name}
         </p>
       </header>
       

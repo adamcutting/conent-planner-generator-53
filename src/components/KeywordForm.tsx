@@ -1,5 +1,4 @@
-
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -13,8 +12,7 @@ import {
   X, 
   PlusCircle, 
   Sparkles, 
-  CalendarIcon, 
-  Check,
+  CalendarIcon,
 } from 'lucide-react';
 import {
   Select,
@@ -26,6 +24,7 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 import { cn } from "@/lib/utils";
+import { useWebsite } from '@/contexts/WebsiteContext';
 
 interface KeywordFormProps {
   onGeneratePlan: (
@@ -44,6 +43,54 @@ const KeywordForm: React.FC<KeywordFormProps> = ({ onGeneratePlan }) => {
   const [selectedContentTypes, setSelectedContentTypes] = useState<string[]>([
     'blog', 'social', 'email', 'infographic', 'landing-page'
   ]);
+  const [suggestedKeywords, setSuggestedKeywords] = useState<string[]>([]);
+  const { selectedWebsite } = useWebsite();
+  
+  useEffect(() => {
+    const keywordsByWebsite: Record<string, string[]> = {
+      'main': [
+        'data analytics', 'business intelligence', 'data visualization', 
+        'big data', 'data science', 'machine learning', 'data management',
+        'data quality', 'data integration', 'cloud computing', 'data engineering'
+      ],
+      'blog': [
+        'content marketing', 'SEO best practices', 'blog strategy',
+        'audience engagement', 'content calendar', 'content creation',
+        'content distribution', 'content metrics', 'storytelling', 'editorial calendar'
+      ],
+      'docs': [
+        'technical documentation', 'API reference', 'implementation guide',
+        'user manual', 'troubleshooting', 'code examples', 'tutorials',
+        'release notes', 'best practices', 'getting started'
+      ],
+      'marketing': [
+        'lead generation', 'marketing automation', 'digital marketing',
+        'campaign strategy', 'conversion rate', 'marketing analytics',
+        'email marketing', 'social media marketing', 'content strategy', 'marketing ROI'
+      ],
+    };
+    
+    const websiteKeywords = keywordsByWebsite[selectedWebsite.id] || keywordsByWebsite.main;
+    
+    if (!keywordsByWebsite[selectedWebsite.id] && selectedWebsite.id !== 'main') {
+      const genericKeywords = [
+        `${selectedWebsite.name} services`,
+        `${selectedWebsite.name} products`,
+        `${selectedWebsite.name} industry`,
+        `${selectedWebsite.name} solutions`,
+        'customer success stories',
+        'industry trends',
+        'best practices',
+        'how-to guides',
+        'case studies',
+        'product updates',
+        'company news'
+      ];
+      setSuggestedKeywords(genericKeywords);
+    } else {
+      setSuggestedKeywords(websiteKeywords);
+    }
+  }, [selectedWebsite]);
   
   const handleAddKeyword = () => {
     if (currentKeyword.trim() && !keywords.includes(currentKeyword.trim())) {
@@ -69,7 +116,6 @@ const KeywordForm: React.FC<KeywordFormProps> = ({ onGeneratePlan }) => {
         'blog', 'social', 'email', 'infographic', 'landing-page'
       ]);
     } else {
-      // Toggle selection
       setSelectedContentTypes(current => 
         current.includes(value)
           ? current.filter(type => type !== value)
@@ -78,13 +124,6 @@ const KeywordForm: React.FC<KeywordFormProps> = ({ onGeneratePlan }) => {
     }
   };
 
-  // Sample suggested keywords
-  const suggestedKeywords = [
-    'data analytics', 'business intelligence', 'data visualization', 
-    'big data', 'data science', 'machine learning', 'data management',
-    'data quality', 'data integration', 'cloud computing', 'data engineering'
-  ];
-  
   const handleAddSuggested = (keyword: string) => {
     if (!keywords.includes(keyword)) {
       setKeywords([...keywords, keyword]);
@@ -224,7 +263,7 @@ const KeywordForm: React.FC<KeywordFormProps> = ({ onGeneratePlan }) => {
         </div>
         
         <div>
-          <Label>Suggested keywords for datahq.co.uk</Label>
+          <Label>Suggested keywords for {selectedWebsite.name}</Label>
           <ScrollArea className="h-[100px] mt-2 border rounded-md p-3">
             <div className="flex flex-wrap gap-2">
               {suggestedKeywords.map((keyword) => (
