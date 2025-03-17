@@ -23,8 +23,50 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
   const [loading, setLoading] = useState(true);
   const { toast } = useToast();
 
+  // Set redirect URL for auth operations
+  const getCurrentUrl = () => {
+    // Get the base URL (without hash or query params)
+    return window.location.origin;
+  };
+
   // Initial session check and subscription to auth changes
   useEffect(() => {
+    // Handle the deep link callback after email confirmation
+    const handleEmailConfirmation = async () => {
+      // Check if we have a hash in the URL (which might contain the access token)
+      const hash = window.location.hash;
+      if (hash && hash.includes('access_token')) {
+        try {
+          // The hash contains the access token, which means this is a redirect from email verification
+          // We need to process this to set the session
+          const { data, error } = await supabase.auth.getSession();
+          
+          if (error) {
+            console.error('Error getting session:', error);
+            toast({
+              title: "Authentication error",
+              description: error.message,
+              variant: "destructive",
+            });
+            return;
+          }
+          
+          // Clean up the URL by removing the hash
+          window.location.hash = '';
+          
+          toast({
+            title: "Email verified",
+            description: "Your email has been verified successfully.",
+          });
+        } catch (error: any) {
+          console.error('Error processing confirmation:', error);
+        }
+      }
+    };
+
+    // Call once on initial load
+    handleEmailConfirmation();
+
     // Get initial session
     supabase.auth.getSession().then(({ data: { session } }) => {
       setSession(session);
@@ -79,6 +121,9 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
       const { error } = await supabase.auth.signUp({
         email,
         password,
+        options: {
+          emailRedirectTo: getCurrentUrl(),
+        },
       });
 
       if (error) {
