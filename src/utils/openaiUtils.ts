@@ -1,4 +1,3 @@
-
 import { GeneratedContent } from './contentUtils';
 
 // Default API key that will be used for all users
@@ -14,10 +13,13 @@ export const isApiKeySet = (): boolean => {
 };
 
 // Content generation with OpenAI
-export const generateContentWithOpenAI = async (
-  prompt: string, 
-  keyword: string
-): Promise<GeneratedContent> => {
+export const generateContentWithOpenAI = async ({
+  prompt, 
+  keyword
+}: {
+  prompt: string;
+  keyword: string;
+}): Promise<{ generatedText: string; suggestions?: string[] }> => {
   const apiKey = getOpenAIApiKey();
   
   if (!apiKey) {
@@ -61,33 +63,9 @@ export const generateContentWithOpenAI = async (
     const data = await response.json();
     console.log('OpenAI response received');
     
-    const generatedText = data.choices[0].message.content;
-    
-    // Extract a title from the generated content
-    const titleMatch = generatedText.match(/^#\s+(.*?)(?:\n|$)/);
-    const title = titleMatch ? titleMatch[1] : `Content about ${keyword}`;
-    
-    // Generate some relevant keywords
-    const keywords = [keyword];
-    keyword.split(' ').forEach(word => {
-      if (word.length > 3 && !keywords.includes(word)) {
-        keywords.push(word);
-      }
-    });
-    
-    // Generate improvement suggestions
-    const suggestions = [
-      `Add more specific examples about ${keyword}`,
-      `Include more statistical data about ${keyword}`,
-      `Add more engaging hooks related to ${keyword}`,
-      `Consider adding a FAQ section about ${keyword}`
-    ];
-    
     return {
-      title,
-      content: generatedText,
-      keywords,
-      suggestions
+      generatedText: data.choices[0].message.content,
+      suggestions: ['Add more specific examples', 'Include statistical data', 'Add engaging hooks']
     };
   } catch (error) {
     console.error('Error generating content with OpenAI:', error);
