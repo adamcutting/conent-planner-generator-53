@@ -1,3 +1,4 @@
+
 import { GeneratedContent } from './contentUtils';
 
 // Default API key that will be used for all users
@@ -13,13 +14,10 @@ export const isApiKeySet = (): boolean => {
 };
 
 // Content generation with OpenAI
-export const generateContentWithOpenAI = async ({
-  prompt, 
-  keyword
-}: {
-  prompt: string;
-  keyword: string;
-}): Promise<{ generatedText: string; suggestions?: string[] }> => {
+export const generateContentWithOpenAI = async (
+  prompt: string,
+  keyword: string = ''
+): Promise<GeneratedContent> => {
   const apiKey = getOpenAIApiKey();
   
   if (!apiKey) {
@@ -63,8 +61,22 @@ export const generateContentWithOpenAI = async ({
     const data = await response.json();
     console.log('OpenAI response received');
     
+    // Extract title and content from the generated text
+    const generatedText = data.choices[0].message.content;
+    let title = keyword;
+    let content = generatedText;
+    
+    // Try to extract a title from the generated content
+    const titleMatch = generatedText.match(/^#\s+(.+?)(?:\n|$)/m) || generatedText.match(/^Title:\s*(.+?)(?:\n|$)/mi);
+    if (titleMatch) {
+      title = titleMatch[1].trim();
+      content = generatedText.replace(titleMatch[0], '').trim();
+    }
+    
     return {
-      generatedText: data.choices[0].message.content,
+      title,
+      content,
+      keywords: [keyword],
       suggestions: ['Add more specific examples', 'Include statistical data', 'Add engaging hooks']
     };
   } catch (error) {
