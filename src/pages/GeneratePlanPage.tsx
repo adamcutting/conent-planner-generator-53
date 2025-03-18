@@ -3,7 +3,7 @@ import { useToast } from "@/components/ui/use-toast";
 import { useNavigate } from 'react-router-dom';
 import GenerateTabContent from '@/features/calendar/GenerateTabContent';
 import { generateContentPlanFromKeywords, getStartDate } from '@/utils/calendarUtils';
-import { saveContentPlan } from '@/utils/contentUtils';
+import { saveContentPlan, loadContentPlan } from '@/utils/contentUtils';
 import { useWebsite } from '@/contexts/WebsiteContext';
 import { isApiKeySet } from '@/utils/openaiUtils';
 import OpenAISetup from '@/components/OpenAISetup';
@@ -21,7 +21,6 @@ import {
   MessageSquarePlus,
   AlertCircle
 } from 'lucide-react';
-import { loadContentPlan } from '@/utils/contentUtils';
 import {
   AlertDialog,
   AlertDialogAction,
@@ -57,6 +56,7 @@ const GeneratePlanPage = () => {
     );
     
     setGeneratedPlan(newPlan);
+    console.log("Generated plan with items:", newPlan.length);
     
     toast({
       title: `Content plan generated`,
@@ -65,49 +65,62 @@ const GeneratePlanPage = () => {
   };
 
   const handleApproveAndSave = () => {
-    if (generatedPlan && generatedPlan.length > 0) {
-      // Check if there's an existing plan
-      const existingPlan = loadContentPlan();
-      if (existingPlan && existingPlan.length > 0) {
-        setShowReplaceDialog(true);
-      } else {
-        // No existing plan, just save
-        saveNewPlan();
-      }
-    } else {
+    if (!generatedPlan || generatedPlan.length === 0) {
       toast({
         title: "No content to save",
         description: "Please generate a content plan first.",
         variant: "destructive"
       });
+      return;
+    }
+    
+    console.log("Approving plan with items:", generatedPlan.length);
+    
+    // Check if there's an existing plan
+    const existingPlan = loadContentPlan();
+    if (existingPlan && existingPlan.length > 0) {
+      console.log("Found existing plan with items:", existingPlan.length);
+      setShowReplaceDialog(true);
+    } else {
+      // No existing plan, just save
+      console.log("No existing plan found, saving new plan");
+      saveNewPlan();
     }
   };
 
   const saveNewPlan = () => {
-    if (generatedPlan && generatedPlan.length > 0) {
-      // Make sure we're saving the entire array, not just the first item
-      saveContentPlan(generatedPlan);
-      toast({
-        title: `Content plan added to calendar`,
-        description: `Added ${generatedPlan.length} items to your content calendar.`,
-      });
-      navigate('/');
-    }
+    if (!generatedPlan || generatedPlan.length === 0) return;
+    
+    console.log("Saving new plan with items:", generatedPlan.length);
+    
+    // Create a copy of the array to ensure we're not just passing a reference
+    const planToSave = [...generatedPlan];
+    saveContentPlan(planToSave);
+    
+    toast({
+      title: `Content plan added to calendar`,
+      description: `Added ${planToSave.length} items to your content calendar.`,
+    });
+    navigate('/');
   };
 
   const appendToPlan = () => {
-    if (generatedPlan && generatedPlan.length > 0) {
-      const existingPlan = loadContentPlan() || [];
-      // Combine arrays properly
-      const combinedPlan = [...existingPlan, ...generatedPlan];
-      // Save the entire combined array
-      saveContentPlan(combinedPlan);
-      toast({
-        title: `Content plan updated`,
-        description: `Added ${generatedPlan.length} new items to your existing content calendar.`,
-      });
-      navigate('/');
-    }
+    if (!generatedPlan || generatedPlan.length === 0) return;
+    
+    const existingPlan = loadContentPlan() || [];
+    console.log("Appending to existing plan. New items:", generatedPlan.length, "Existing items:", existingPlan.length);
+    
+    // Create a new array combining both plans
+    const combinedPlan = [...existingPlan, ...generatedPlan];
+    console.log("Combined plan total items:", combinedPlan.length);
+    
+    saveContentPlan(combinedPlan);
+    
+    toast({
+      title: `Content plan updated`,
+      description: `Added ${generatedPlan.length} new items to your existing content calendar.`,
+    });
+    navigate('/');
   };
 
   const handleModifyWithAI = async () => {
@@ -150,7 +163,7 @@ const GeneratePlanPage = () => {
   };
 
   return (
-    <div className="min-h-screen flex flex-col p-4 md:p-8 max-w-full mx-auto">
+    <div className="min-h-screen flex flex-col p-4 md:p-8 max-w-6xl mx-auto">
       <header className="mb-8 animate-fade-in">
         <div className="flex items-center gap-2 mb-2">
           <h1 className="text-3xl font-bold">Generate Content Plan</h1>
@@ -171,17 +184,17 @@ const GeneratePlanPage = () => {
         </div>
       )}
       
-      <div className="w-full max-w-5xl mx-auto">
+      <div className="w-full mx-auto">
         <GenerateTabContent onGeneratePlan={handleGeneratePlan} />
       </div>
 
       {generatedPlan && (
-        <div className="mt-8 space-y-6 animate-fade-in w-full max-w-6xl mx-auto">
+        <div className="mt-8 space-y-6 animate-fade-in w-full mx-auto">
           <div className="flex items-center justify-between">
             <h2 className="text-2xl font-semibold">Review Generated Plan</h2>
             <Button onClick={handleApproveAndSave}>
               <CalendarPlus className="mr-2 h-4 w-4" />
-              Add to Calendar
+              Add to Calendar ({generatedPlan.length} items)
             </Button>
           </div>
 

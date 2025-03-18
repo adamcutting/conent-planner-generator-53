@@ -91,8 +91,17 @@ export const emailSettings = {
 // and fallback when user is not authenticated
 export const saveContentPlan = (contentPlan: any[]) => {
   // Make sure we're saving the full array, not just the first item
+  console.log('Saving content plan:', contentPlan);
+  
   if (Array.isArray(contentPlan)) {
-    localStorage.setItem('contentCalendarPlan', JSON.stringify(contentPlan));
+    try {
+      const serialized = JSON.stringify(contentPlan);
+      localStorage.setItem('contentCalendarPlan', serialized);
+      console.log('Saved content plan length:', contentPlan.length);
+      console.log('Serialized data length:', serialized.length);
+    } catch (e) {
+      console.error('Error serializing content plan:', e);
+    }
   } else {
     console.error('Error: contentPlan is not an array', contentPlan);
   }
@@ -100,10 +109,18 @@ export const saveContentPlan = (contentPlan: any[]) => {
 
 export const loadContentPlan = () => {
   const saved = localStorage.getItem('contentCalendarPlan');
+  console.log('Loading content plan, raw data length:', saved?.length || 0);
+  
   try {
     const parsedPlan = saved ? JSON.parse(saved) : null;
     // Ensure we're returning an array
-    return Array.isArray(parsedPlan) ? parsedPlan : null;
+    if (Array.isArray(parsedPlan)) {
+      console.log('Loaded content plan length:', parsedPlan.length);
+      return parsedPlan;
+    } else {
+      console.log('Loaded content plan is not an array:', parsedPlan);
+      return null;
+    }
   } catch (e) {
     console.error('Error parsing content plan from localStorage', e);
     return null;
