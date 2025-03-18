@@ -64,13 +64,14 @@ const GeneratePlanPage = () => {
 
     setIsModifying(true);
     try {
-      const { generatedText } = await generateContentWithOpenAI({
-        prompt: `Given this content plan: \n${JSON.stringify(generatedPlan, null, 2)}\n\nModify it according to this request: ${aiPrompt}\n\nReturn ONLY the modified JSON array of content items with the same structure.`,
-        keyword: ''  // Not needed for this use case
-      });
+      const prompt = `Given this content plan: \n${JSON.stringify(generatedPlan, null, 2)}\n\nModify it according to this request: ${aiPrompt}\n\nReturn ONLY the modified JSON array of content items with the same structure.`;
+      const generatedContent = await generateContentWithOpenAI(prompt);
 
       try {
-        const modifiedPlan = JSON.parse(generatedText);
+        // Extract the content which contains our JSON
+        const jsonContent = generatedContent.content;
+        const modifiedPlan = JSON.parse(jsonContent);
+        
         if (Array.isArray(modifiedPlan)) {
           setGeneratedPlan(modifiedPlan);
           toast({
@@ -193,4 +194,3 @@ const GeneratePlanPage = () => {
 };
 
 export default GeneratePlanPage;
-
