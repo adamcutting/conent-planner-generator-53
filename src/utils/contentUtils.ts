@@ -86,7 +86,7 @@ export const emailSettings = {
   }
 };
 
-// Fix the issue where only the first item is being saved
+// Completely rewritten saveContentPlan function to ensure reliability
 export const saveContentPlan = (contentPlan: any[]) => {
   // First, validate that we have an array
   if (!Array.isArray(contentPlan)) {
@@ -94,54 +94,65 @@ export const saveContentPlan = (contentPlan: any[]) => {
     return false;
   }
   
-  // Validate that we have items in the array
-  if (contentPlan.length === 0) {
-    console.log('Warning: Saving an empty content plan');
-  }
-  
   try {
-    // Create a deep copy of the array to prevent any reference issues
+    // Log the input to verify what we're receiving
+    console.log('Saving content plan, received items:', contentPlan.length);
+    
+    // Create a fresh copy to avoid reference issues
     const contentPlanCopy = JSON.parse(JSON.stringify(contentPlan));
-    console.log('Saving content plan with items:', contentPlanCopy.length);
     
-    // Serialize the array and save it to localStorage
-    const serialized = JSON.stringify(contentPlanCopy);
-    localStorage.setItem('contentCalendarPlan', serialized);
+    // Verify copy was successful
+    console.log('Created deep copy with items:', contentPlanCopy.length);
     
-    // Verify that data was saved correctly
-    const savedData = localStorage.getItem('contentCalendarPlan');
-    const parsedSavedData = savedData ? JSON.parse(savedData) : [];
-    console.log('Verification - saved items count:', parsedSavedData.length);
+    // Set a reliable key in localStorage
+    window.localStorage.setItem('contentCalendarPlan', JSON.stringify(contentPlanCopy));
+    
+    // Verify what was saved by reading it back immediately
+    const verification = loadContentPlan();
+    console.log('Verification - saved items count:', verification ? verification.length : 0);
+    
+    if (!verification || verification.length !== contentPlan.length) {
+      console.error('Verification failed - counts don\'t match', 
+        'Original:', contentPlan.length, 
+        'Saved:', verification ? verification.length : 0);
+      return false;
+    }
     
     return true;
   } catch (e) {
-    console.error('Error saving content plan:', e);
+    console.error('Error in saveContentPlan:', e);
     return false;
   }
 };
 
+// Completely rewritten loadContentPlan function for reliability
 export const loadContentPlan = () => {
   try {
-    const savedData = localStorage.getItem('contentCalendarPlan');
+    const serialized = window.localStorage.getItem('contentCalendarPlan');
     
-    if (!savedData) {
+    if (!serialized) {
       console.log('No content plan found in localStorage');
       return null;
     }
     
-    // Parse the data
-    const parsedPlan = JSON.parse(savedData);
+    const parsed = JSON.parse(serialized);
     
-    // Validate that we have an array
-    if (!Array.isArray(parsedPlan)) {
-      console.error('Error: Loaded data is not an array:', parsedPlan);
+    if (!Array.isArray(parsed)) {
+      console.error('Error: Loaded data is not an array:', parsed);
       return null;
     }
     
-    console.log('Successfully loaded content plan with items:', parsedPlan.length);
-    return parsedPlan;
+    if (parsed.length === 0) {
+      console.log('Warning: Loaded an empty content plan array');
+    } else {
+      console.log('Successfully loaded content plan with items:', parsed.length);
+    }
+    
+    // Create a fresh copy to avoid reference issues
+    const contentPlanCopy = JSON.parse(JSON.stringify(parsed));
+    return contentPlanCopy;
   } catch (e) {
-    console.error('Error loading content plan:', e);
+    console.error('Error in loadContentPlan:', e);
     return null;
   }
 };

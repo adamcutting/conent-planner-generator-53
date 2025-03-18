@@ -1,4 +1,3 @@
-
 import React, { useState } from 'react';
 import { useToast } from "@/components/ui/use-toast";
 import { useNavigate } from 'react-router-dom';
@@ -42,6 +41,7 @@ const GeneratePlanPage = () => {
   const [isModifying, setIsModifying] = useState(false);
   const [aiPrompt, setAiPrompt] = useState('');
   const [showReplaceDialog, setShowReplaceDialog] = useState(false);
+  const [isSaving, setIsSaving] = useState(false);
   
   const handleGeneratePlan = (
     keywords: string[], 
@@ -93,54 +93,95 @@ const GeneratePlanPage = () => {
     if (!generatedPlan || generatedPlan.length === 0) return;
     
     console.log("Saving new plan with items:", generatedPlan.length);
+    setIsSaving(true);
     
-    // Create a deep copy of the array to ensure we're not just passing a reference
-    const planToSave = JSON.parse(JSON.stringify(generatedPlan));
-    const saveResult = saveContentPlan(planToSave);
-    
-    if (saveResult) {
-      toast({
-        title: `Content plan added to calendar`,
-        description: `Added ${planToSave.length} items to your content calendar.`,
-      });
-      navigate('/');
-    } else {
+    try {
+      // Ensure we're working with a fresh copy
+      const planToSave = JSON.parse(JSON.stringify(generatedPlan));
+      console.log("Created deep copy with items:", planToSave.length);
+      
+      const saveResult = saveContentPlan(planToSave);
+      
+      if (saveResult) {
+        toast({
+          title: `Content plan added to calendar`,
+          description: `Added ${planToSave.length} items to your content calendar.`,
+        });
+        // Immediately verify what was saved
+        const verification = loadContentPlan();
+        console.log("Verification after save:", verification ? verification.length : 0, "items");
+        
+        // Navigate after a small delay to ensure localStorage has time to sync
+        setTimeout(() => {
+          navigate('/');
+        }, 500);
+      } else {
+        toast({
+          title: "Error saving plan",
+          description: "There was a problem saving your content plan. Please try again.",
+          variant: "destructive"
+        });
+      }
+    } catch (error) {
+      console.error("Error in saveNewPlan:", error);
       toast({
         title: "Error saving plan",
-        description: "There was a problem saving your content plan. Please try again.",
+        description: "An unexpected error occurred. Please try again.",
         variant: "destructive"
       });
+    } finally {
+      setIsSaving(false);
     }
   };
 
   const appendToPlan = () => {
     if (!generatedPlan || generatedPlan.length === 0) return;
     
-    const existingPlan = loadContentPlan() || [];
-    console.log("Appending to existing plan. New items:", generatedPlan.length, "Existing items:", existingPlan.length);
-    
-    // Create a deep copy of both arrays before combining
-    const generatedPlanCopy = JSON.parse(JSON.stringify(generatedPlan));
-    const existingPlanCopy = JSON.parse(JSON.stringify(existingPlan));
-    
-    // Create a new array combining both plans
-    const combinedPlan = [...existingPlanCopy, ...generatedPlanCopy];
-    console.log("Combined plan total items:", combinedPlan.length);
-    
-    const saveResult = saveContentPlan(combinedPlan);
-    
-    if (saveResult) {
-      toast({
-        title: `Content plan updated`,
-        description: `Added ${generatedPlan.length} new items to your existing content calendar.`,
-      });
-      navigate('/');
-    } else {
+    setIsSaving(true);
+    try {
+      const existingPlan = loadContentPlan() || [];
+      console.log("Appending to existing plan. New items:", generatedPlan.length, "Existing items:", existingPlan.length);
+      
+      // Create fresh copies of both arrays
+      const generatedPlanCopy = JSON.parse(JSON.stringify(generatedPlan));
+      const existingPlanCopy = JSON.parse(JSON.stringify(existingPlan));
+      
+      // Combine the plans
+      const combinedPlan = [...existingPlanCopy, ...generatedPlanCopy];
+      console.log("Combined plan total items:", combinedPlan.length);
+      
+      const saveResult = saveContentPlan(combinedPlan);
+      
+      if (saveResult) {
+        toast({
+          title: `Content plan updated`,
+          description: `Added ${generatedPlan.length} new items to your existing content calendar.`,
+        });
+        
+        // Immediately verify what was saved
+        const verification = loadContentPlan();
+        console.log("Verification after append:", verification ? verification.length : 0, "items");
+        
+        // Navigate after a small delay to ensure localStorage has time to sync
+        setTimeout(() => {
+          navigate('/');
+        }, 500);
+      } else {
+        toast({
+          title: "Error updating plan",
+          description: "There was a problem updating your content plan. Please try again.",
+          variant: "destructive"
+        });
+      }
+    } catch (error) {
+      console.error("Error in appendToPlan:", error);
       toast({
         title: "Error updating plan",
-        description: "There was a problem updating your content plan. Please try again.",
+        description: "An unexpected error occurred. Please try again.",
         variant: "destructive"
       });
+    } finally {
+      setIsSaving(false);
     }
   };
 
@@ -213,8 +254,16 @@ const GeneratePlanPage = () => {
         <div className="mt-8 space-y-6 animate-fade-in w-full mx-auto">
           <div className="flex items-center justify-between">
             <h2 className="text-2xl font-semibold">Review Generated Plan</h2>
-            <Button onClick={handleApproveAndSave}>
-              <CalendarPlus className="mr-2 h-4 w-4" />
+            <Button 
+              onClick={handleApproveAndSave} 
+              disabled={isSaving}
+              className="relative"
+            >
+              {isSaving ? (
+                <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+              ) : (
+                <CalendarPlus className="mr-2 h-4 w-4" />
+              )}
               Add to Calendar ({generatedPlan.length} items)
             </Button>
           </div>
@@ -249,7 +298,7 @@ const GeneratePlanPage = () => {
               <div className="space-y-4">
                 {generatedPlan.map((item, index) => (
                   <div 
-                    key={item.id} 
+                    key={item.id || index} 
                     className="flex items-start gap-4 p-4 border rounded-lg hover:bg-secondary/50 transition-colors"
                   >
                     <div className="flex-1">
@@ -259,7 +308,7 @@ const GeneratePlanPage = () => {
                       </div>
                       <p className="text-sm text-muted-foreground mb-2">{item.description}</p>
                       <div className="flex flex-wrap gap-1">
-                        {item.keywords.map((keyword, idx) => (
+                        {item.keywords && item.keywords.map((keyword, idx) => (
                           <Badge key={idx} variant="secondary" className="text-xs">
                             {keyword}
                           </Badge>

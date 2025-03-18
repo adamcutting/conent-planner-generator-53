@@ -39,15 +39,37 @@ const CalendarPage: React.FC = () => {
       
       if (user && selectedWebsite) {
         // If user is logged in, load from Supabase
-        const items = await loadContentPlanItems(user.id, selectedWebsite.id);
-        setContentPlan(items);
+        try {
+          console.log("Loading from Supabase for user:", user.id, "website:", selectedWebsite.id);
+          const items = await loadContentPlanItems(user.id, selectedWebsite.id);
+          console.log("Loaded from Supabase:", items.length, "items");
+          setContentPlan(items);
+        } catch (error) {
+          console.error("Error loading from Supabase:", error);
+          toast({
+            title: "Error loading content",
+            description: "Failed to load content from the database. Trying local storage as fallback.",
+            variant: "destructive"
+          });
+          
+          // Fall back to localStorage if Supabase fails
+          const savedPlan = loadContentPlan();
+          if (savedPlan) {
+            console.log("Fallback to localStorage - loaded:", savedPlan.length, "items");
+            setContentPlan(savedPlan);
+          }
+        }
       } else {
-        // If not logged in, fall back to localStorage
+        // If not logged in, use localStorage
+        console.log("User not logged in, loading from localStorage");
         const savedPlan = loadContentPlan();
-        if (savedPlan) {
+        if (savedPlan && savedPlan.length > 0) {
+          console.log("Loaded from localStorage:", savedPlan.length, "items");
           setContentPlan(savedPlan);
         } else {
+          console.log("No saved plan found, generating initial plan");
           const initialPlan = generateInitialContentPlan();
+          console.log("Generated initial plan with:", initialPlan.length, "items");
           setContentPlan(initialPlan);
           saveContentPlan(initialPlan);
         }
@@ -57,7 +79,7 @@ const CalendarPage: React.FC = () => {
     };
     
     loadContent();
-  }, [user, selectedWebsite]);
+  }, [user, selectedWebsite, toast]);
   
   useEffect(() => {
     // Check for email reminders that need to be sent
@@ -92,7 +114,11 @@ const CalendarPage: React.FC = () => {
   // Save content plan to localStorage as fallback if not logged in
   useEffect(() => {
     if (contentPlan.length > 0 && !user) {
-      saveContentPlan(contentPlan);
+      console.log("Saving to localStorage:", contentPlan.length, "items");
+      const saveResult = saveContentPlan(contentPlan);
+      if (!saveResult) {
+        console.error("Failed to save content plan to localStorage");
+      }
     }
   }, [contentPlan, user]);
   
