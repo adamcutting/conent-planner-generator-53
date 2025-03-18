@@ -1,4 +1,3 @@
-
 import React, { useState } from 'react';
 import { useToast } from "@/components/ui/use-toast";
 import { useNavigate } from 'react-router-dom';
@@ -66,7 +65,7 @@ const GeneratePlanPage = () => {
   };
 
   const handleApproveAndSave = () => {
-    if (generatedPlan) {
+    if (generatedPlan && generatedPlan.length > 0) {
       // Check if there's an existing plan
       const existingPlan = loadContentPlan();
       if (existingPlan && existingPlan.length > 0) {
@@ -75,11 +74,18 @@ const GeneratePlanPage = () => {
         // No existing plan, just save
         saveNewPlan();
       }
+    } else {
+      toast({
+        title: "No content to save",
+        description: "Please generate a content plan first.",
+        variant: "destructive"
+      });
     }
   };
 
   const saveNewPlan = () => {
-    if (generatedPlan) {
+    if (generatedPlan && generatedPlan.length > 0) {
+      // Make sure we're saving the entire array, not just the first item
       saveContentPlan(generatedPlan);
       toast({
         title: `Content plan added to calendar`,
@@ -90,9 +96,11 @@ const GeneratePlanPage = () => {
   };
 
   const appendToPlan = () => {
-    if (generatedPlan) {
+    if (generatedPlan && generatedPlan.length > 0) {
       const existingPlan = loadContentPlan() || [];
+      // Combine arrays properly
       const combinedPlan = [...existingPlan, ...generatedPlan];
+      // Save the entire combined array
       saveContentPlan(combinedPlan);
       toast({
         title: `Content plan updated`,

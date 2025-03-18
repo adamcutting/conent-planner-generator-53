@@ -1,3 +1,4 @@
+
 // This file contains utility functions for content generation
 
 export interface GeneratedContent {
@@ -89,10 +90,22 @@ export const emailSettings = {
 // These localStorage functions are kept for backward compatibility 
 // and fallback when user is not authenticated
 export const saveContentPlan = (contentPlan: any[]) => {
-  localStorage.setItem('contentCalendarPlan', JSON.stringify(contentPlan));
+  // Make sure we're saving the full array, not just the first item
+  if (Array.isArray(contentPlan)) {
+    localStorage.setItem('contentCalendarPlan', JSON.stringify(contentPlan));
+  } else {
+    console.error('Error: contentPlan is not an array', contentPlan);
+  }
 };
 
 export const loadContentPlan = () => {
   const saved = localStorage.getItem('contentCalendarPlan');
-  return saved ? JSON.parse(saved) : null;
+  try {
+    const parsedPlan = saved ? JSON.parse(saved) : null;
+    // Ensure we're returning an array
+    return Array.isArray(parsedPlan) ? parsedPlan : null;
+  } catch (e) {
+    console.error('Error parsing content plan from localStorage', e);
+    return null;
+  }
 };
