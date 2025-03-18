@@ -16,7 +16,23 @@ import { Textarea } from '@/components/ui/textarea';
 import { generateContentWithOpenAI } from '@/utils/openaiUtils';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
-import { Loader2, CalendarPlus, MessageSquarePlus, Check } from 'lucide-react';
+import { 
+  Loader2, 
+  CalendarPlus, 
+  MessageSquarePlus,
+  AlertCircle
+} from 'lucide-react';
+import { loadContentPlan } from '@/utils/contentUtils';
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+} from "@/components/ui/alert-dialog";
 
 const GeneratePlanPage = () => {
   const { toast } = useToast();
@@ -26,6 +42,7 @@ const GeneratePlanPage = () => {
   const [generatedPlan, setGeneratedPlan] = useState<ContentPlanItem[] | null>(null);
   const [isModifying, setIsModifying] = useState(false);
   const [aiPrompt, setAiPrompt] = useState('');
+  const [showReplaceDialog, setShowReplaceDialog] = useState(false);
   
   const handleGeneratePlan = (
     keywords: string[], 
@@ -50,10 +67,36 @@ const GeneratePlanPage = () => {
 
   const handleApproveAndSave = () => {
     if (generatedPlan) {
+      // Check if there's an existing plan
+      const existingPlan = loadContentPlan();
+      if (existingPlan && existingPlan.length > 0) {
+        setShowReplaceDialog(true);
+      } else {
+        // No existing plan, just save
+        saveNewPlan();
+      }
+    }
+  };
+
+  const saveNewPlan = () => {
+    if (generatedPlan) {
       saveContentPlan(generatedPlan);
       toast({
         title: `Content plan added to calendar`,
         description: `Added ${generatedPlan.length} items to your content calendar.`,
+      });
+      navigate('/');
+    }
+  };
+
+  const appendToPlan = () => {
+    if (generatedPlan) {
+      const existingPlan = loadContentPlan() || [];
+      const combinedPlan = [...existingPlan, ...generatedPlan];
+      saveContentPlan(combinedPlan);
+      toast({
+        title: `Content plan updated`,
+        description: `Added ${generatedPlan.length} new items to your existing content calendar.`,
       });
       navigate('/');
     }
@@ -99,7 +142,7 @@ const GeneratePlanPage = () => {
   };
 
   return (
-    <div className="min-h-screen flex flex-col p-4 md:p-8 max-w-7xl mx-auto">
+    <div className="min-h-screen flex flex-col p-4 md:p-8 max-w-full mx-auto">
       <header className="mb-8 animate-fade-in">
         <div className="flex items-center gap-2 mb-2">
           <h1 className="text-3xl font-bold">Generate Content Plan</h1>
@@ -120,10 +163,12 @@ const GeneratePlanPage = () => {
         </div>
       )}
       
-      <GenerateTabContent onGeneratePlan={handleGeneratePlan} />
+      <div className="w-full max-w-5xl mx-auto">
+        <GenerateTabContent onGeneratePlan={handleGeneratePlan} />
+      </div>
 
       {generatedPlan && (
-        <div className="mt-8 space-y-6 animate-fade-in">
+        <div className="mt-8 space-y-6 animate-fade-in w-full max-w-6xl mx-auto">
           <div className="flex items-center justify-between">
             <h2 className="text-2xl font-semibold">Review Generated Plan</h2>
             <Button onClick={handleApproveAndSave}>
@@ -189,6 +234,26 @@ const GeneratePlanPage = () => {
           </div>
         </div>
       )}
+
+      <AlertDialog open={showReplaceDialog} onOpenChange={setShowReplaceDialog}>
+        <AlertDialogContent>
+          <AlertDialogHeader>
+            <AlertDialogTitle>Existing Content Plan Found</AlertDialogTitle>
+            <AlertDialogDescription>
+              You already have content items in your calendar. Would you like to replace them with this new plan or add these new items to your existing plan?
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogCancel>Cancel</AlertDialogCancel>
+            <AlertDialogAction onClick={saveNewPlan} className="bg-destructive text-destructive-foreground hover:bg-destructive/90">
+              Replace Existing
+            </AlertDialogAction>
+            <AlertDialogAction onClick={appendToPlan}>
+              Add to Existing
+            </AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
     </div>
   );
 };
