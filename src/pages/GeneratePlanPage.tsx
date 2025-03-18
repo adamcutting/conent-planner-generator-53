@@ -1,3 +1,4 @@
+
 import React, { useState } from 'react';
 import { useToast } from "@/components/ui/use-toast";
 import { useNavigate } from 'react-router-dom';
@@ -93,15 +94,23 @@ const GeneratePlanPage = () => {
     
     console.log("Saving new plan with items:", generatedPlan.length);
     
-    // Create a copy of the array to ensure we're not just passing a reference
-    const planToSave = [...generatedPlan];
-    saveContentPlan(planToSave);
+    // Create a deep copy of the array to ensure we're not just passing a reference
+    const planToSave = JSON.parse(JSON.stringify(generatedPlan));
+    const saveResult = saveContentPlan(planToSave);
     
-    toast({
-      title: `Content plan added to calendar`,
-      description: `Added ${planToSave.length} items to your content calendar.`,
-    });
-    navigate('/');
+    if (saveResult) {
+      toast({
+        title: `Content plan added to calendar`,
+        description: `Added ${planToSave.length} items to your content calendar.`,
+      });
+      navigate('/');
+    } else {
+      toast({
+        title: "Error saving plan",
+        description: "There was a problem saving your content plan. Please try again.",
+        variant: "destructive"
+      });
+    }
   };
 
   const appendToPlan = () => {
@@ -110,17 +119,29 @@ const GeneratePlanPage = () => {
     const existingPlan = loadContentPlan() || [];
     console.log("Appending to existing plan. New items:", generatedPlan.length, "Existing items:", existingPlan.length);
     
+    // Create a deep copy of both arrays before combining
+    const generatedPlanCopy = JSON.parse(JSON.stringify(generatedPlan));
+    const existingPlanCopy = JSON.parse(JSON.stringify(existingPlan));
+    
     // Create a new array combining both plans
-    const combinedPlan = [...existingPlan, ...generatedPlan];
+    const combinedPlan = [...existingPlanCopy, ...generatedPlanCopy];
     console.log("Combined plan total items:", combinedPlan.length);
     
-    saveContentPlan(combinedPlan);
+    const saveResult = saveContentPlan(combinedPlan);
     
-    toast({
-      title: `Content plan updated`,
-      description: `Added ${generatedPlan.length} new items to your existing content calendar.`,
-    });
-    navigate('/');
+    if (saveResult) {
+      toast({
+        title: `Content plan updated`,
+        description: `Added ${generatedPlan.length} new items to your existing content calendar.`,
+      });
+      navigate('/');
+    } else {
+      toast({
+        title: "Error updating plan",
+        description: "There was a problem updating your content plan. Please try again.",
+        variant: "destructive"
+      });
+    }
   };
 
   const handleModifyWithAI = async () => {
@@ -163,7 +184,7 @@ const GeneratePlanPage = () => {
   };
 
   return (
-    <div className="min-h-screen flex flex-col p-4 md:p-8 max-w-6xl mx-auto">
+    <div className="min-h-screen flex flex-col p-4 md:p-8 max-w-7xl mx-auto">
       <header className="mb-8 animate-fade-in">
         <div className="flex items-center gap-2 mb-2">
           <h1 className="text-3xl font-bold">Generate Content Plan</h1>

@@ -1,4 +1,3 @@
-
 // This file contains utility functions for content generation
 
 export interface GeneratedContent {
@@ -87,42 +86,62 @@ export const emailSettings = {
   }
 };
 
-// These localStorage functions are kept for backward compatibility 
-// and fallback when user is not authenticated
+// Fix the issue where only the first item is being saved
 export const saveContentPlan = (contentPlan: any[]) => {
-  // Make sure we're saving the full array, not just the first item
-  console.log('Saving content plan:', contentPlan);
+  // First, validate that we have an array
+  if (!Array.isArray(contentPlan)) {
+    console.error('Error: saveContentPlan received a non-array:', contentPlan);
+    return false;
+  }
   
-  if (Array.isArray(contentPlan)) {
-    try {
-      const serialized = JSON.stringify(contentPlan);
-      localStorage.setItem('contentCalendarPlan', serialized);
-      console.log('Saved content plan length:', contentPlan.length);
-      console.log('Serialized data length:', serialized.length);
-    } catch (e) {
-      console.error('Error serializing content plan:', e);
-    }
-  } else {
-    console.error('Error: contentPlan is not an array', contentPlan);
+  // Validate that we have items in the array
+  if (contentPlan.length === 0) {
+    console.log('Warning: Saving an empty content plan');
+  }
+  
+  try {
+    // Create a deep copy of the array to prevent any reference issues
+    const contentPlanCopy = JSON.parse(JSON.stringify(contentPlan));
+    console.log('Saving content plan with items:', contentPlanCopy.length);
+    
+    // Serialize the array and save it to localStorage
+    const serialized = JSON.stringify(contentPlanCopy);
+    localStorage.setItem('contentCalendarPlan', serialized);
+    
+    // Verify that data was saved correctly
+    const savedData = localStorage.getItem('contentCalendarPlan');
+    const parsedSavedData = savedData ? JSON.parse(savedData) : [];
+    console.log('Verification - saved items count:', parsedSavedData.length);
+    
+    return true;
+  } catch (e) {
+    console.error('Error saving content plan:', e);
+    return false;
   }
 };
 
 export const loadContentPlan = () => {
-  const saved = localStorage.getItem('contentCalendarPlan');
-  console.log('Loading content plan, raw data length:', saved?.length || 0);
-  
   try {
-    const parsedPlan = saved ? JSON.parse(saved) : null;
-    // Ensure we're returning an array
-    if (Array.isArray(parsedPlan)) {
-      console.log('Loaded content plan length:', parsedPlan.length);
-      return parsedPlan;
-    } else {
-      console.log('Loaded content plan is not an array:', parsedPlan);
+    const savedData = localStorage.getItem('contentCalendarPlan');
+    
+    if (!savedData) {
+      console.log('No content plan found in localStorage');
       return null;
     }
+    
+    // Parse the data
+    const parsedPlan = JSON.parse(savedData);
+    
+    // Validate that we have an array
+    if (!Array.isArray(parsedPlan)) {
+      console.error('Error: Loaded data is not an array:', parsedPlan);
+      return null;
+    }
+    
+    console.log('Successfully loaded content plan with items:', parsedPlan.length);
+    return parsedPlan;
   } catch (e) {
-    console.error('Error parsing content plan from localStorage', e);
+    console.error('Error loading content plan:', e);
     return null;
   }
 };
