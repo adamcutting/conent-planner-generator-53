@@ -23,9 +23,7 @@ const contentItemToDbRow = (item: ContentPlanItem, userId: string, websiteId: st
   // Make sure we have a string format for due_date
   const dueDate = typeof item.dueDate === 'string' 
     ? item.dueDate 
-    : item.dueDate instanceof Date 
-      ? item.dueDate.toISOString() 
-      : new Date(item.dueDate).toISOString();
+    : (item.dueDate as Date).toISOString?.() || new Date(item.dueDate as any).toISOString();
       
   return {
     id: item.id && !item.id.startsWith('new-') ? item.id : uuidv4(),
