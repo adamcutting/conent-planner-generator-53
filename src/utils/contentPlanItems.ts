@@ -23,13 +23,25 @@ const contentItemToDbRow = (item: ContentPlanItem, userId: string, websiteId: st
   // Make sure we have a string format for due_date
   let dueDate: string;
   
+  // Safely extract the dueDate as a string in ISO format
   if (typeof item.dueDate === 'string') {
     dueDate = item.dueDate;
-  } else if (item.dueDate instanceof Date) {
-    dueDate = item.dueDate.toISOString();
+  } else if (item.dueDate && typeof item.dueDate === 'object') {
+    // If it's a Date object (or at least has toISOString)
+    try {
+      dueDate = (item.dueDate as any).toISOString();
+    } catch (e) {
+      console.warn('Failed to convert date object to ISO string:', e);
+      dueDate = new Date().toISOString(); // Fallback to current date
+    }
   } else {
-    // Handle the case when it might be something else
-    dueDate = new Date(item.dueDate as any).toISOString();
+    // Last resort: try to create a new Date from whatever we have
+    try {
+      dueDate = new Date(item.dueDate as any).toISOString();
+    } catch (e) {
+      console.warn('Failed to convert to Date, using current date:', e);
+      dueDate = new Date().toISOString(); // Fallback to current date
+    }
   }
       
   return {
