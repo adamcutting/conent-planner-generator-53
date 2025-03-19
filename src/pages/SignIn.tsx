@@ -39,6 +39,32 @@ const SignIn = () => {
     }
   };
 
+  const handleForgotPassword = async () => {
+    if (!email) {
+      setError('Please enter your email address to reset your password');
+      return;
+    }
+
+    setLoading(true);
+    setError(null);
+
+    try {
+      const { error } = await supabase.auth.resetPasswordForEmail(email, {
+        redirectTo: `${window.location.origin}/reset-password`,
+      });
+
+      if (error) throw error;
+
+      // Show success message
+      setError(null);
+      alert('Password reset link sent to your email!');
+    } catch (error: any) {
+      setError(error.message || 'Failed to send reset password email');
+    } finally {
+      setLoading(false);
+    }
+  };
+
   return (
     <AuthLayout
       title="Sign In"
@@ -76,6 +102,13 @@ const SignIn = () => {
         <div className="space-y-2">
           <div className="flex items-center justify-between">
             <Label htmlFor="password">Password</Label>
+            <button
+              type="button"
+              onClick={handleForgotPassword}
+              className="text-sm font-medium text-primary hover:underline"
+            >
+              Forgot password?
+            </button>
           </div>
           <Input
             id="password"
