@@ -29,8 +29,10 @@ export const StorageDebugger = () => {
         contentType: 'blog',
         contentStyle: 'knowledge', // Changed from 'informative' to 'knowledge'
         dueDate: new Date().toISOString(),
-        website_id: 'test',
-        user_id: 'test-user'
+        description: 'Test description 1',
+        objective: 'Test objective 1',
+        completed: false,
+        keywords: ['test', 'blog']
       },
       {
         id: 'test-2',
@@ -38,8 +40,10 @@ export const StorageDebugger = () => {
         contentType: 'social',
         contentStyle: 'story', // Changed from 'casual' to 'story'
         dueDate: new Date().toISOString(),
-        website_id: 'test',
-        user_id: 'test-user'
+        description: 'Test description 2',
+        objective: 'Test objective 2',
+        completed: false,
+        keywords: ['test', 'social']
       }
     ];
 
