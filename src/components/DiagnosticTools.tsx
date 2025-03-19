@@ -27,7 +27,7 @@ export const StorageDebugger = () => {
         id: 'test-1',
         title: 'Test Item 1',
         contentType: 'blog',
-        contentStyle: 'knowledge', // Changed from 'informative' to 'knowledge'
+        contentStyle: 'knowledge',
         dueDate: new Date().toISOString(),
         description: 'Test description 1',
         objective: 'Test objective 1',
@@ -38,7 +38,7 @@ export const StorageDebugger = () => {
         id: 'test-2',
         title: 'Test Item 2',
         contentType: 'social',
-        contentStyle: 'story', // Changed from 'casual' to 'story'
+        contentStyle: 'story',
         dueDate: new Date().toISOString(),
         description: 'Test description 2',
         objective: 'Test objective 2',
@@ -65,7 +65,7 @@ export const StorageDebugger = () => {
       }
       addLogEntry('Loaded items:');
       loadedItems.forEach((item, index) => {
-        addLogEntry(`Item ${index + 1}: id=${item.id}, title=${item.title}`);
+        addLogEntry(`Item ${index + 1}: id=${item.id}, title=${item.title}, type=${item.contentType}, style=${item.contentStyle}`);
       });
     }
 
