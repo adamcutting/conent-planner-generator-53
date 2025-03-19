@@ -1,4 +1,3 @@
-
 import React, { useState } from 'react';
 import { useToast } from "@/components/ui/use-toast";
 import { useNavigate } from 'react-router-dom';
@@ -16,6 +15,8 @@ import { Textarea } from '@/components/ui/textarea';
 import { generateContentWithOpenAI } from '@/utils/openaiUtils';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
+import { useAuth } from '@/contexts/AuthContext';
+import { addMultipleContentPlanItems } from '@/utils/contentPlanItems';
 import { 
   Loader2, 
   CalendarPlus, 
@@ -37,6 +38,7 @@ const GeneratePlanPage = () => {
   const { toast } = useToast();
   const navigate = useNavigate();
   const { selectedWebsite } = useWebsite();
+  const { user } = useAuth();
   const [openAIConfigured] = React.useState<boolean>(isApiKeySet());
   const [generatedPlan, setGeneratedPlan] = useState<ContentPlanItem[] | null>(null);
   const [isModifying, setIsModifying] = useState(false);
@@ -90,7 +92,7 @@ const GeneratePlanPage = () => {
     }
   };
 
-  const saveNewPlan = () => {
+  const saveNewPlan = async () => {
     if (!generatedPlan || generatedPlan.length === 0) return;
     
     console.log("Saving new plan with items:", generatedPlan.length);
@@ -114,37 +116,40 @@ const GeneratePlanPage = () => {
       }
 
       // Log a sample item from the plan
-      console.log("Sample item to save:", planToSave[0]);
+      console.log("Sample item to save:", JSON.stringify(planToSave[0]));
       if (planToSave.length > 1) {
-        console.log("Second item to save:", planToSave[1]);
+        console.log("Second item to save:", JSON.stringify(planToSave[1]));
       }
       
-      // Use our new storage utility
-      const saveResult = saveContentPlanToStorage(planToSave);
+      let saveSuccess = false;
       
-      if (saveResult) {
-        // Verify the save by loading it back
-        const verificationLoad = loadContentPlanFromStorage();
-        if (verificationLoad && verificationLoad.length === planToSave.length) {
-          console.log("Verification successful - loaded back", verificationLoad.length, "items");
-          
-          toast({
-            title: `Content plan added to calendar`,
-            description: `Added ${planToSave.length} items to your content calendar.`,
-          });
-          
-          // Navigate after a small delay to ensure localStorage has time to sync
-          setTimeout(() => {
-            navigate('/');
-          }, 500);
-        } else {
-          console.error("Verification failed - expected", planToSave.length, "items but got", verificationLoad ? verificationLoad.length : 0);
-          toast({
-            title: "Error saving plan",
-            description: "Verification failed. Please try again.",
-            variant: "destructive"
-          });
-        }
+      // If user is logged in, save to Supabase
+      if (user && selectedWebsite) {
+        console.log("User is logged in, saving to Supabase");
+        saveSuccess = await addMultipleContentPlanItems(
+          planToSave, 
+          user.id, 
+          selectedWebsite.id
+        );
+        
+        console.log("Supabase save result:", saveSuccess);
+      } else {
+        // Otherwise use local storage
+        console.log("User not logged in, saving to localStorage");
+        saveSuccess = saveContentPlanToStorage(planToSave);
+        console.log("LocalStorage save result:", saveSuccess);
+      }
+      
+      if (saveSuccess) {
+        toast({
+          title: `Content plan added to calendar`,
+          description: `Added ${planToSave.length} items to your content calendar.`,
+        });
+        
+        // Navigate after a small delay to ensure storage has time to sync
+        setTimeout(() => {
+          navigate('/');
+        }, 500);
       } else {
         toast({
           title: "Error saving plan",
@@ -164,87 +169,69 @@ const GeneratePlanPage = () => {
     }
   };
 
-  const appendToPlan = () => {
+  const appendToPlan = async () => {
     if (!generatedPlan || generatedPlan.length === 0) return;
     
     setIsSaving(true);
     try {
-      const existingPlan = loadContentPlanFromStorage() || [];
-      console.log("Appending to existing plan. New items:", generatedPlan.length, "Existing items:", existingPlan.length);
-      
-      // Create fresh copies of both arrays to avoid reference issues
+      // Create fresh copies to avoid reference issues
       const generatedPlanCopy = JSON.parse(JSON.stringify(generatedPlan));
-      const existingPlanCopy = JSON.parse(JSON.stringify(existingPlan));
       
-      // Additional validation before combining
-      if (!Array.isArray(generatedPlanCopy) || !Array.isArray(existingPlanCopy)) {
-        console.error("Invalid arrays for combining:", { 
-          generatedPlanCopy: Array.isArray(generatedPlanCopy), 
-          existingPlanCopy: Array.isArray(existingPlanCopy) 
-        });
-        toast({
-          title: "Error updating plan",
-          description: "The plan data appears to be invalid. Please try again.",
-          variant: "destructive"
-        });
-        setIsSaving(false);
-        return;
-      }
-      
-      // Combine the plans
-      const combinedPlan = [...existingPlanCopy, ...generatedPlanCopy];
-      console.log("Combined plan total items:", combinedPlan.length);
-      
-      // Log some items from the combined plan for debugging
-      console.log("First item in combined plan:", combinedPlan[0]);
-      if (combinedPlan.length > 1) {
-        console.log("Second item in combined plan:", combinedPlan[1]);
-      }
-      
-      // Directly check if we've lost items during the combination
-      if (combinedPlan.length !== existingPlanCopy.length + generatedPlanCopy.length) {
-        console.error("Item count mismatch after combining arrays");
-        toast({
-          title: "Error updating plan",
-          description: "There was a problem combining your content plans. Please try again.",
-          variant: "destructive"
-        });
-        setIsSaving(false);
-        return;
-      }
-      
-      // Use our new storage utility
-      const saveResult = saveContentPlanToStorage(combinedPlan);
-      
-      if (saveResult) {
-        // Verify the save by loading it back
-        const verificationLoad = loadContentPlanFromStorage();
-        if (verificationLoad && verificationLoad.length === combinedPlan.length) {
-          console.log("Verification successful - loaded back", verificationLoad.length, "items");
-          
+      if (user && selectedWebsite) {
+        // If logged in, append directly to Supabase
+        console.log("User logged in, appending to Supabase");
+        const success = await addMultipleContentPlanItems(
+          generatedPlanCopy,
+          user.id,
+          selectedWebsite.id
+        );
+        
+        if (success) {
           toast({
             title: `Content plan updated`,
-            description: `Added ${generatedPlan.length} new items to your existing content calendar.`,
+            description: `Added ${generatedPlanCopy.length} new items to your content calendar.`,
           });
           
-          // Navigate after a small delay to ensure localStorage has time to sync
           setTimeout(() => {
             navigate('/');
           }, 500);
         } else {
-          console.error("Verification failed - expected", combinedPlan.length, "items but got", verificationLoad ? verificationLoad.length : 0);
           toast({
             title: "Error updating plan",
-            description: "Verification failed. Please try again.",
+            description: "Failed to add items to your content plan. Please try again.",
             variant: "destructive"
           });
         }
       } else {
-        toast({
-          title: "Error updating plan",
-          description: "There was a problem updating your content plan. Please try again.",
-          variant: "destructive"
-        });
+        // If not logged in, use localStorage
+        const existingPlan = loadContentPlanFromStorage() || [];
+        console.log("User not logged in, appending to localStorage");
+        console.log("Existing items:", existingPlan.length, "New items:", generatedPlanCopy.length);
+        
+        const existingPlanCopy = JSON.parse(JSON.stringify(existingPlan));
+        
+        // Combine the plans
+        const combinedPlan = [...existingPlanCopy, ...generatedPlanCopy];
+        console.log("Combined plan total items:", combinedPlan.length);
+        
+        const saveResult = saveContentPlanToStorage(combinedPlan);
+        
+        if (saveResult) {
+          toast({
+            title: `Content plan updated`,
+            description: `Added ${generatedPlanCopy.length} new items to your existing content calendar.`,
+          });
+          
+          setTimeout(() => {
+            navigate('/');
+          }, 500);
+        } else {
+          toast({
+            title: "Error updating plan",
+            description: "There was a problem updating your content plan. Please try again.",
+            variant: "destructive"
+          });
+        }
       }
     } catch (error) {
       console.error("Error in appendToPlan:", error);
