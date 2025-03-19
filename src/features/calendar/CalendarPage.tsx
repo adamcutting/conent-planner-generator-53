@@ -1,3 +1,4 @@
+
 import React, { useState, useEffect } from 'react';
 import { useToast } from "@/components/ui/use-toast";
 import CalendarTabContent from './CalendarTabContent';
@@ -8,7 +9,11 @@ import {
   generateContentPlanFromKeywords, 
   getStartDate
 } from '@/utils/calendarUtils';
-import { saveContentPlan, loadContentPlan, emailSettings } from '@/utils/contentUtils';
+import { emailSettings } from '@/utils/contentUtils';
+import { 
+  loadContentPlanFromStorage,
+  saveContentPlanToStorage
+} from '@/utils/contentPlanStorage';
 import { 
   loadContentPlanItems,
   addContentPlanItem,
@@ -53,7 +58,7 @@ const CalendarPage: React.FC = () => {
           });
           
           // Fall back to localStorage if Supabase fails
-          const savedPlan = loadContentPlan();
+          const savedPlan = loadContentPlanFromStorage();
           if (savedPlan) {
             console.log("Fallback to localStorage - loaded:", savedPlan.length, "items");
             setContentPlan(savedPlan);
@@ -62,7 +67,7 @@ const CalendarPage: React.FC = () => {
       } else {
         // If not logged in, use localStorage
         console.log("User not logged in, loading from localStorage");
-        const savedPlan = loadContentPlan();
+        const savedPlan = loadContentPlanFromStorage();
         if (savedPlan && savedPlan.length > 0) {
           console.log("Loaded from localStorage:", savedPlan.length, "items");
           setContentPlan(savedPlan);
@@ -71,7 +76,7 @@ const CalendarPage: React.FC = () => {
           const initialPlan = generateInitialContentPlan();
           console.log("Generated initial plan with:", initialPlan.length, "items");
           setContentPlan(initialPlan);
-          saveContentPlan(initialPlan);
+          saveContentPlanToStorage(initialPlan);
         }
       }
       
@@ -115,10 +120,7 @@ const CalendarPage: React.FC = () => {
   useEffect(() => {
     if (contentPlan.length > 0 && !user) {
       console.log("Saving to localStorage:", contentPlan.length, "items");
-      const saveResult = saveContentPlan(contentPlan);
-      if (!saveResult) {
-        console.error("Failed to save content plan to localStorage");
-      }
+      saveContentPlanToStorage(contentPlan);
     }
   }, [contentPlan, user]);
   
@@ -224,7 +226,9 @@ const CalendarPage: React.FC = () => {
         const addedItem = await addContentPlanItem(newItem, user.id, selectedWebsite.id);
         
         if (addedItem) {
-          setContentPlan([...contentPlan, addedItem]);
+          // Create a new array with the added item to avoid reference issues
+          const updatedPlan = [...contentPlan, addedItem];
+          setContentPlan(updatedPlan);
           
           toast({
             title: "Content saved",
@@ -239,7 +243,12 @@ const CalendarPage: React.FC = () => {
         }
       } else {
         // Fallback to local save only
-        setContentPlan([...contentPlan, newItem]);
+        // Create a new array with the new item to avoid reference issues
+        const updatedPlan = [...contentPlan, newItem];
+        setContentPlan(updatedPlan);
+        
+        // Save to localStorage immediately to ensure it's persisted
+        saveContentPlanToStorage(updatedPlan);
         
         toast({
           title: "Content saved",

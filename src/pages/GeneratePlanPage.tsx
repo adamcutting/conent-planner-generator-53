@@ -3,7 +3,7 @@ import { useToast } from "@/components/ui/use-toast";
 import { useNavigate } from 'react-router-dom';
 import GenerateTabContent from '@/features/calendar/GenerateTabContent';
 import { generateContentPlanFromKeywords, getStartDate } from '@/utils/calendarUtils';
-import { saveContentPlan, loadContentPlan } from '@/utils/contentUtils';
+import { saveContentPlanToStorage, loadContentPlanFromStorage, clearContentPlanStorage } from '@/utils/contentPlanStorage';
 import { useWebsite } from '@/contexts/WebsiteContext';
 import { isApiKeySet } from '@/utils/openaiUtils';
 import OpenAISetup from '@/components/OpenAISetup';
@@ -78,7 +78,7 @@ const GeneratePlanPage = () => {
     console.log("Approving plan with items:", generatedPlan.length);
     
     // Check if there's an existing plan
-    const existingPlan = loadContentPlan();
+    const existingPlan = loadContentPlanFromStorage();
     if (existingPlan && existingPlan.length > 0) {
       console.log("Found existing plan with items:", existingPlan.length);
       setShowReplaceDialog(true);
@@ -100,16 +100,14 @@ const GeneratePlanPage = () => {
       const planToSave = JSON.parse(JSON.stringify(generatedPlan));
       console.log("Created deep copy with items:", planToSave.length);
       
-      const saveResult = saveContentPlan(planToSave);
+      // Use our new storage utility
+      const saveResult = saveContentPlanToStorage(planToSave);
       
       if (saveResult) {
         toast({
           title: `Content plan added to calendar`,
           description: `Added ${planToSave.length} items to your content calendar.`,
         });
-        // Immediately verify what was saved
-        const verification = loadContentPlan();
-        console.log("Verification after save:", verification ? verification.length : 0, "items");
         
         // Navigate after a small delay to ensure localStorage has time to sync
         setTimeout(() => {
@@ -139,10 +137,10 @@ const GeneratePlanPage = () => {
     
     setIsSaving(true);
     try {
-      const existingPlan = loadContentPlan() || [];
+      const existingPlan = loadContentPlanFromStorage() || [];
       console.log("Appending to existing plan. New items:", generatedPlan.length, "Existing items:", existingPlan.length);
       
-      // Create fresh copies of both arrays
+      // Create fresh copies of both arrays to avoid reference issues
       const generatedPlanCopy = JSON.parse(JSON.stringify(generatedPlan));
       const existingPlanCopy = JSON.parse(JSON.stringify(existingPlan));
       
@@ -150,17 +148,14 @@ const GeneratePlanPage = () => {
       const combinedPlan = [...existingPlanCopy, ...generatedPlanCopy];
       console.log("Combined plan total items:", combinedPlan.length);
       
-      const saveResult = saveContentPlan(combinedPlan);
+      // Use our new storage utility
+      const saveResult = saveContentPlanToStorage(combinedPlan);
       
       if (saveResult) {
         toast({
           title: `Content plan updated`,
           description: `Added ${generatedPlan.length} new items to your existing content calendar.`,
         });
-        
-        // Immediately verify what was saved
-        const verification = loadContentPlan();
-        console.log("Verification after append:", verification ? verification.length : 0, "items");
         
         // Navigate after a small delay to ensure localStorage has time to sync
         setTimeout(() => {

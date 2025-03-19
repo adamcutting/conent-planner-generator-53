@@ -1,5 +1,5 @@
-
 // This file contains utility functions for content generation
+import { loadContentPlanFromStorage, saveContentPlanToStorage } from './contentPlanStorage';
 
 export interface GeneratedContent {
   title: string;
@@ -87,132 +87,14 @@ export const emailSettings = {
   }
 };
 
-// Complete rewrite of saveContentPlan function to fix array saving issues
-export const saveContentPlan = (contentPlan: any[]) => {
-  // First, validate that we have an array
-  if (!Array.isArray(contentPlan)) {
-    console.error('Error: saveContentPlan received a non-array:', contentPlan);
-    return false;
-  }
-  
-  try {
-    // Log the input to verify what we're receiving
-    console.log('Saving content plan, received items:', contentPlan.length);
-    
-    // Debug: Log the first few items to check their structure
-    if (contentPlan.length > 0) {
-      console.log('First item:', JSON.stringify(contentPlan[0]));
-      if (contentPlan.length > 1) {
-        console.log('Second item:', JSON.stringify(contentPlan[1]));
-      }
-    }
-    
-    // Use JSON stringify and parse to create a completely disconnected deep copy
-    const contentPlanString = JSON.stringify(contentPlan);
-    console.log('Stringified plan length:', contentPlanString.length);
-    
-    // Verify the string is not just an empty array or null
-    if (contentPlanString === '[]' && contentPlan.length > 0) {
-      console.error('Error: Stringified content plan is empty array but original had items');
-      return false;
-    }
-    
-    if (!contentPlanString || contentPlanString === 'null') {
-      console.error('Error: Failed to stringify content plan');
-      return false;
-    }
-    
-    // Use direct storage approach rather than re-parsing first
-    try {
-      window.localStorage.setItem('contentCalendarPlan', contentPlanString);
-      console.log('Successfully wrote to localStorage with length:', contentPlanString.length);
-    } catch (storageError) {
-      console.error('Error writing to localStorage:', storageError);
-      
-      // Check if we've hit storage limits
-      if (storageError instanceof DOMException && 
-          (storageError.name === 'QuotaExceededError' || 
-           storageError.name === 'NS_ERROR_DOM_QUOTA_REACHED')) {
-        console.error('localStorage quota exceeded');
-      }
-      return false;
-    }
-    
-    // Verify what was saved by reading it back immediately
-    const savedContent = window.localStorage.getItem('contentCalendarPlan');
-    if (!savedContent) {
-      console.error('Verification failed - could not read back saved content');
-      return false;
-    }
-    
-    console.log('Verification - saved content length:', savedContent.length);
-    
-    // Parse to verify integrity
-    try {
-      const parsedSavedContent = JSON.parse(savedContent);
-      if (!Array.isArray(parsedSavedContent)) {
-        console.error('Verification failed - saved content is not an array');
-        return false;
-      }
-      
-      console.log('Verification - parsedSavedContent length:', parsedSavedContent.length);
-      
-      if (parsedSavedContent.length !== contentPlan.length) {
-        console.error('Verification failed - counts don\'t match', 
-          'Original:', contentPlan.length, 
-          'Saved:', parsedSavedContent.length);
-        return false;
-      }
-      
-      return true;
-    } catch (parseError) {
-      console.error('Verification failed - could not parse saved content:', parseError);
-      return false;
-    }
-  } catch (e) {
-    console.error('Unexpected error in saveContentPlan:', e);
-    return false;
-  }
+// For backward compatibility, redirect to our new implementation
+export const saveContentPlan = (contentPlan: any[]): boolean => {
+  console.log('Using new saveContentPlanToStorage implementation');
+  return saveContentPlanToStorage(contentPlan);
 };
 
-// Completely rewritten loadContentPlan function for reliability
+// For backward compatibility, redirect to our new implementation
 export const loadContentPlan = () => {
-  try {
-    const serialized = window.localStorage.getItem('contentCalendarPlan');
-    
-    if (!serialized) {
-      console.log('No content plan found in localStorage');
-      return null;
-    }
-    
-    console.log('Loading content plan, serialized length:', serialized.length);
-    
-    try {
-      const parsed = JSON.parse(serialized);
-      
-      if (!Array.isArray(parsed)) {
-        console.error('Error: Loaded data is not an array:', parsed);
-        return null;
-      }
-      
-      console.log('Successfully loaded content plan with items:', parsed.length);
-      
-      if (parsed.length > 0) {
-        console.log('First loaded item:', JSON.stringify(parsed[0]));
-        if (parsed.length > 1) {
-          console.log('Second loaded item:', JSON.stringify(parsed[1]));
-        }
-      } else {
-        console.log('Warning: Loaded an empty content plan array');
-      }
-      
-      return parsed;
-    } catch (parseError) {
-      console.error('Error parsing content plan from localStorage:', parseError);
-      return null;
-    }
-  } catch (e) {
-    console.error('Unexpected error in loadContentPlan:', e);
-    return null;
-  }
+  console.log('Using new loadContentPlanFromStorage implementation');
+  return loadContentPlanFromStorage();
 };
