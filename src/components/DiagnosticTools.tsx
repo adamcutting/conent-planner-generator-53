@@ -27,7 +27,7 @@ export const StorageDebugger = () => {
         id: 'test-1',
         title: 'Test Item 1',
         contentType: 'blog',
-        contentStyle: 'informative',
+        contentStyle: 'knowledge', // Changed from 'informative' to 'knowledge'
         dueDate: new Date().toISOString(),
         website_id: 'test',
         user_id: 'test-user'
@@ -36,7 +36,7 @@ export const StorageDebugger = () => {
         id: 'test-2',
         title: 'Test Item 2',
         contentType: 'social',
-        contentStyle: 'casual',
+        contentStyle: 'story', // Changed from 'casual' to 'story'
         dueDate: new Date().toISOString(),
         website_id: 'test',
         user_id: 'test-user'
