@@ -10,7 +10,7 @@ const dbRowToContentItem = (row: any): ContentPlanItem => {
     title: row.title,
     description: row.description || '',
     objective: row.objective || '',
-    dueDate: row.due_date.toISOString(),
+    dueDate: row.due_date.toISOString ? row.due_date.toISOString() : row.due_date,
     completed: row.completed || false,
     contentType: row.content_type,
     contentStyle: row.content_style,
@@ -20,6 +20,13 @@ const dbRowToContentItem = (row: any): ContentPlanItem => {
 
 // Convert a ContentPlanItem to a database row format
 const contentItemToDbRow = (item: ContentPlanItem, userId: string, websiteId: string) => {
+  // Make sure we have a string format for due_date
+  const dueDate = typeof item.dueDate === 'string' 
+    ? item.dueDate 
+    : item.dueDate instanceof Date 
+      ? item.dueDate.toISOString() 
+      : new Date(item.dueDate).toISOString();
+      
   return {
     id: item.id && !item.id.startsWith('new-') ? item.id : uuidv4(),
     user_id: userId,
@@ -27,7 +34,7 @@ const contentItemToDbRow = (item: ContentPlanItem, userId: string, websiteId: st
     title: item.title,
     description: item.description || '',
     objective: item.objective || '',
-    due_date: new Date(item.dueDate),
+    due_date: dueDate, // Use the string format now
     completed: item.completed || false,
     content_type: item.contentType,
     content_style: item.contentStyle,
