@@ -39,7 +39,7 @@ const CalendarTabContent: React.FC<CalendarTabContentProps> = ({
       title: `New Content Item`,
       description: `Add description`,
       objective: 'Engage with target audience',
-      dueDate: selectedDate.toISOString(), // Always use ISO string for consistency
+      dueDate: selectedDate.toISOString(), // Make sure we use ISO string for consistency
       completed: false,
       contentType: 'blog',
       contentStyle: 'knowledge',

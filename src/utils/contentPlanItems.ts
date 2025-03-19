@@ -21,9 +21,16 @@ const dbRowToContentItem = (row: any): ContentPlanItem => {
 // Convert a ContentPlanItem to a database row format
 const contentItemToDbRow = (item: ContentPlanItem, userId: string, websiteId: string) => {
   // Make sure we have a string format for due_date
-  const dueDate = typeof item.dueDate === 'string' 
-    ? item.dueDate 
-    : (item.dueDate as Date).toISOString?.() || new Date(item.dueDate as any).toISOString();
+  let dueDate: string;
+  
+  if (typeof item.dueDate === 'string') {
+    dueDate = item.dueDate;
+  } else if (item.dueDate instanceof Date) {
+    dueDate = item.dueDate.toISOString();
+  } else {
+    // Handle the case when it might be something else
+    dueDate = new Date(item.dueDate as any).toISOString();
+  }
       
   return {
     id: item.id && !item.id.startsWith('new-') ? item.id : uuidv4(),
@@ -179,6 +186,12 @@ export const addMultipleContentPlanItems = async (
     
     // Convert all items to DB format with proper string due_date
     const dbItems = items.map(item => contentItemToDbRow(item, userId, websiteId));
+    
+    // Adding debug logs to see what's being sent to Supabase
+    console.log('First item being sent to Supabase:', JSON.stringify(dbItems[0]));
+    if (dbItems.length > 1) {
+      console.log('Second item being sent to Supabase:', JSON.stringify(dbItems[1]));
+    }
     
     const { error } = await supabase
       .from('content_plan_items')
