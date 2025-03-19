@@ -1,3 +1,4 @@
+
 import { supabase } from '@/integrations/supabase/client';
 import { ContentPlanItem } from '@/utils/calendarUtils';
 import { v4 as uuidv4 } from '@/utils/uuid';
@@ -121,8 +122,12 @@ export const addContentPlanItem = async (
     // Convert to DB format but remove the ID field to let Supabase generate it
     const dbItem = contentItemToDbRow(item, userId, websiteId);
     
-    // Remove the id field when inserting a new item
-    const { id, ...insertData } = dbItem;
+    // Check if the result has an ID property before trying to destructure it
+    // This is a TypeScript-safe way to handle potential missing ID field
+    const insertData = { ...dbItem };
+    if ('id' in insertData) {
+      delete insertData.id;
+    }
     
     const { data, error } = await supabase
       .from('content_plan_items')
@@ -226,8 +231,11 @@ export const addMultipleContentPlanItems = async (
     // Convert items to proper Supabase format but remove IDs to let Supabase generate them
     const dbItems = items.map(item => {
       const dbItem = contentItemToDbRow(item, userId, websiteId);
-      // Remove the id field for each item
-      const { id, ...insertData } = dbItem;
+      // Remove the id field for each item in a type-safe way
+      const insertData = { ...dbItem };
+      if ('id' in insertData) {
+        delete insertData.id;
+      }
       console.log(`Prepared item for Supabase - Title: ${insertData.title}, Date: ${insertData.due_date}`);
       return insertData;
     });
