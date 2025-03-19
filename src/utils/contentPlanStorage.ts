@@ -32,13 +32,12 @@ export const saveContentPlanToStorage = (contentPlan: ContentPlanItem[]): boolea
 
     // Enhanced debug logging
     console.log(`Attempting to save ${contentPlan.length} items to localStorage`);
-    console.log('First item preview:', contentPlan[0]);
+    console.log('First item preview:', JSON.stringify(contentPlan[0]));
     if (contentPlan.length > 1) {
-      console.log('Second item preview:', contentPlan[1]);
+      console.log('Second item preview:', JSON.stringify(contentPlan[1]));
     }
     
     // Create a deep copy to avoid reference issues
-    // This extra step ensures we're not saving a reference to a modified object
     const deepCopy = JSON.parse(JSON.stringify(contentPlan));
     
     // Verify we didn't lose any items during the deep copy
@@ -137,9 +136,9 @@ export const loadContentPlanFromStorage = (): ContentPlanItem[] | null => {
       
       // Additional logging for first few items
       if (parsedPlan.length > 0) {
-        console.log('First item:', parsedPlan[0]);
+        console.log('First item:', JSON.stringify(parsedPlan[0]));
         if (parsedPlan.length > 1) {
-          console.log('Second item:', parsedPlan[1]);
+          console.log('Second item:', JSON.stringify(parsedPlan[1]));
         }
       }
       
