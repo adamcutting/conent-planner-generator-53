@@ -1,4 +1,3 @@
-
 import React, { useState, useEffect } from 'react';
 import { useToast } from "@/components/ui/use-toast";
 import CalendarTabContent from './CalendarTabContent';
@@ -37,17 +36,23 @@ const CalendarPage: React.FC = () => {
   const [editingContentItem, setEditingContentItem] = useState<ContentPlanItem | undefined>(undefined);
   const [isLoading, setIsLoading] = useState(true);
   
-  // Load content plan from Supabase or localStorage
   useEffect(() => {
     const loadContent = async () => {
       setIsLoading(true);
       
       if (user && selectedWebsite) {
-        // If user is logged in, load from Supabase
         try {
           console.log("Loading from Supabase for user:", user.id, "website:", selectedWebsite.id);
           const items = await loadContentPlanItems(user.id, selectedWebsite.id);
           console.log("Loaded from Supabase:", items.length, "items");
+          
+          if (items.length > 0) {
+            console.log("Sample item loaded from Supabase:", items[0]);
+            if (items.length > 1) {
+              console.log("Second item loaded from Supabase:", items[1]);
+            }
+          }
+          
           setContentPlan(items);
         } catch (error) {
           console.error("Error loading from Supabase:", error);
@@ -57,26 +62,48 @@ const CalendarPage: React.FC = () => {
             variant: "destructive"
           });
           
-          // Fall back to localStorage if Supabase fails
           const savedPlan = loadContentPlanFromStorage();
           if (savedPlan) {
             console.log("Fallback to localStorage - loaded:", savedPlan.length, "items");
+            
+            if (savedPlan.length > 0) {
+              console.log("Sample item from localStorage:", savedPlan[0]);
+              if (savedPlan.length > 1) {
+                console.log("Second item from localStorage:", savedPlan[1]);
+              }
+            }
+            
             setContentPlan(savedPlan);
           }
         }
       } else {
-        // If not logged in, use localStorage
         console.log("User not logged in, loading from localStorage");
         const savedPlan = loadContentPlanFromStorage();
+        
         if (savedPlan && savedPlan.length > 0) {
           console.log("Loaded from localStorage:", savedPlan.length, "items");
+          console.log("Sample item from localStorage:", savedPlan[0]);
+          if (savedPlan.length > 1) {
+            console.log("Second item from localStorage:", savedPlan[1]);
+          }
+          
           setContentPlan(savedPlan);
         } else {
           console.log("No saved plan found, generating initial plan");
           const initialPlan = generateInitialContentPlan();
           console.log("Generated initial plan with:", initialPlan.length, "items");
+          
+          if (initialPlan.length > 0) {
+            console.log("Sample item from initial plan:", initialPlan[0]);
+            if (initialPlan.length > 1) {
+              console.log("Second item from initial plan:", initialPlan[1]);
+            }
+          }
+          
           setContentPlan(initialPlan);
-          saveContentPlanToStorage(initialPlan);
+          
+          const saveResult = saveContentPlanToStorage(initialPlan);
+          console.log("Initial plan save result:", saveResult);
         }
       }
       
@@ -87,28 +114,23 @@ const CalendarPage: React.FC = () => {
   }, [user, selectedWebsite, toast]);
   
   useEffect(() => {
-    // Check for email reminders that need to be sent
     const settings = emailSettings.get();
     if (settings.email) {
-      // Send initial check on load
       checkAndSendReminders(
         contentPlan, 
         settings.email, 
         settings.daysBeforeDue
       );
       
-      // Clear any existing intervals (to prevent duplicates if component remounts)
       if (window.reminderCheckInterval) {
         clearInterval(window.reminderCheckInterval);
       }
       
-      // Check for reminders every hour (in a real app, this would be server-side)
       window.reminderCheckInterval = setInterval(() => {
         checkAndSendReminders(contentPlan, settings.email, settings.daysBeforeDue);
-      }, 60 * 60 * 1000); // Every hour
+      }, 60 * 60 * 1000);
     }
     
-    // Cleanup interval when component unmounts
     return () => {
       if (window.reminderCheckInterval) {
         clearInterval(window.reminderCheckInterval);
@@ -116,21 +138,28 @@ const CalendarPage: React.FC = () => {
     };
   }, [contentPlan]);
   
-  // Save content plan to localStorage as fallback if not logged in
   useEffect(() => {
     if (contentPlan.length > 0 && !user) {
       console.log("Saving to localStorage:", contentPlan.length, "items");
-      saveContentPlanToStorage(contentPlan);
+      
+      const planToSave = JSON.parse(JSON.stringify(contentPlan));
+      
+      if (planToSave.length > 0) {
+        console.log("Sample item to save:", planToSave[0]);
+        if (planToSave.length > 1) {
+          console.log("Second item to save:", planToSave[1]);
+        }
+      }
+      
+      saveContentPlanToStorage(planToSave);
     }
   }, [contentPlan, user]);
   
   const handleUpdateItem = async (updatedItem: ContentPlanItem) => {
     if (user && selectedWebsite) {
-      // Update in Supabase
       const success = await updateContentPlanItem(updatedItem, user.id, selectedWebsite.id);
       
       if (success) {
-        // Update local state
         const updatedPlan = contentPlan.map(item => 
           item.id === updatedItem.id ? updatedItem : item
         );
@@ -147,7 +176,6 @@ const CalendarPage: React.FC = () => {
         });
       }
     } else {
-      // Fallback to local update only
       const updatedPlan = contentPlan.map(item => 
         item.id === updatedItem.id ? updatedItem : item
       );
@@ -165,11 +193,9 @@ const CalendarPage: React.FC = () => {
     if (!itemToDelete) return;
     
     if (user) {
-      // Delete from Supabase
       const success = await deleteContentPlanItem(itemId);
       
       if (success) {
-        // Update local state
         const updatedPlan = contentPlan.filter(item => item.id !== itemId);
         setContentPlan(updatedPlan);
         
@@ -184,7 +210,6 @@ const CalendarPage: React.FC = () => {
         });
       }
     } else {
-      // Fallback to local delete only
       const updatedPlan = contentPlan.filter(item => item.id !== itemId);
       setContentPlan(updatedPlan);
       
@@ -222,11 +247,9 @@ const CalendarPage: React.FC = () => {
       };
       
       if (user && selectedWebsite) {
-        // Save to Supabase
         const addedItem = await addContentPlanItem(newItem, user.id, selectedWebsite.id);
         
         if (addedItem) {
-          // Create a new array with the added item to avoid reference issues
           const updatedPlan = [...contentPlan, addedItem];
           setContentPlan(updatedPlan);
           
@@ -242,12 +265,9 @@ const CalendarPage: React.FC = () => {
           });
         }
       } else {
-        // Fallback to local save only
-        // Create a new array with the new item to avoid reference issues
         const updatedPlan = [...contentPlan, newItem];
         setContentPlan(updatedPlan);
         
-        // Save to localStorage immediately to ensure it's persisted
         saveContentPlanToStorage(updatedPlan);
         
         toast({
@@ -322,7 +342,6 @@ const CalendarPage: React.FC = () => {
   );
 };
 
-// For TypeScript
 declare global {
   interface Window {
     reminderCheckInterval: any;
