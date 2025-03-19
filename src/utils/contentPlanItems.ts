@@ -1,3 +1,4 @@
+
 import { supabase } from '@/integrations/supabase/client';
 import { ContentPlanItem } from '@/utils/calendarUtils';
 import { v4 as uuidv4 } from '@/utils/uuid';
@@ -43,8 +44,16 @@ const contentItemToDbRow = (item: ContentPlanItem, userId: string, websiteId: st
     }
   }
       
+  // Generate a valid UUID for the item
+  // Important: Always generate a new UUID for items with string IDs that aren't valid UUIDs
+  // This fixes the "invalid input syntax for type uuid" error
+  const isValidUuid = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i.test(item.id);
+  const id = isValidUuid ? item.id : uuidv4();
+  
+  console.log(`Item ID conversion: Original "${item.id}" -> New "${id}"`);
+  
   return {
-    id: item.id && !item.id.startsWith('new-') ? item.id : uuidv4(),
+    id: id,
     user_id: userId,
     website_id: websiteId,
     title: item.title,
@@ -132,6 +141,14 @@ export const updateContentPlanItem = async (
   try {
     console.log(`Updating content item ${item.id} for user ${userId}:`, item.title);
     
+    // Check if the item has a valid UUID
+    const isValidUuid = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i.test(item.id);
+    
+    if (!isValidUuid) {
+      console.error('Cannot update item with invalid UUID:', item.id);
+      return false;
+    }
+    
     const dbItem = contentItemToDbRow(item, userId, websiteId);
     
     const { error } = await supabase
@@ -195,7 +212,7 @@ export const addMultipleContentPlanItems = async (
     
     console.log(`Adding ${items.length} content items for user ${userId} and website ${websiteId}`);
     
-    // Convert all items to DB format with proper string due_date
+    // Convert all items to DB format with proper string due_date and valid UUIDs
     const dbItems = items.map(item => {
       const dbItem = contentItemToDbRow(item, userId, websiteId);
       console.log(`Prepared item for Supabase - ID: ${dbItem.id}, Title: ${dbItem.title}, Date: ${dbItem.due_date}`);
@@ -223,6 +240,7 @@ export const addMultipleContentPlanItems = async (
       
       if (error) {
         console.error(`Error adding chunk ${Math.floor(i/chunkSize) + 1} to Supabase:`, error);
+        console.error('Error details:', error.message);
         success = false;
         break;
       }
