@@ -336,6 +336,16 @@ export const sendTestEmail = async (emailAddress: string): Promise<boolean> => {
   });
 };
 
+// Track which content items we've already sent reminders for to avoid duplicates
+const sentReminders = new Map<string, Date>();
+
+// Helper to check if it's an appropriate time to send an email (8am local time)
+const isAppropriateTimeToSendEmail = (): boolean => {
+  const now = new Date();
+  const hour = now.getHours();
+  return hour === 8; // Only send at 8am
+};
+
 // Function to check for due content items and send reminders
 export const checkAndSendReminders = async (
   contentPlan: any[], 
@@ -347,46 +357,67 @@ export const checkAndSendReminders = async (
     return false;
   }
   
+  // Check if it's an appropriate time to send emails
+  if (!isAppropriateTimeToSendEmail()) {
+    console.log('Not sending reminder - outside scheduled email time (8am)');
+    return false;
+  }
+
   const today = new Date();
   const reminderDate = new Date();
   reminderDate.setDate(today.getDate() + daysBeforeDue);
   
+  // For logging
+  console.log(`Checking for items due today (${today.toDateString()}) or on reminder date (${reminderDate.toDateString()})`);
+
   // Find content items that are due today or on the reminder date
   const dueItems = contentPlan.filter(item => {
+    if (item.completed) return false;
+    
     const dueDate = new Date(item.dueDate);
+    const dueDateStr = dueDate.toDateString();
+    const itemId = item.id;
     
-    // Item is due exactly on the reminder date
-    if (dueDate.getDate() === reminderDate.getDate() && 
-        dueDate.getMonth() === reminderDate.getMonth() && 
-        dueDate.getFullYear() === reminderDate.getFullYear()) {
-      return true;
+    // Skip if we've already sent a reminder for this item today
+    if (sentReminders.has(itemId)) {
+      const lastSent = sentReminders.get(itemId);
+      if (lastSent && lastSent.toDateString() === today.toDateString()) {
+        console.log(`Already sent reminder for item ${itemId} today, skipping`);
+        return false;
+      }
     }
     
-    // Item is due today
-    if (dueDate.getDate() === today.getDate() && 
-        dueDate.getMonth() === today.getMonth() && 
-        dueDate.getFullYear() === today.getFullYear()) {
-      return true;
-    }
-    
-    return false;
-  }).filter(item => !item.completed);
+    // Check if due date matches today or reminder date
+    return dueDateStr === today.toDateString() || dueDateStr === reminderDate.toDateString();
+  });
   
   if (dueItems.length === 0) {
     console.log('No items due soon, no reminders sent');
     return false;
   }
   
+  console.log(`Found ${dueItems.length} items due soon`);
+  
   // Generate the email HTML using the template
   const subject = emailTemplates.contentReminder.subject;
   const html = emailTemplates.contentReminder.generateHtml(dueItems);
   
   // Send the email
-  return await sendEmail({
+  const success = await sendEmail({
     to: emailAddress,
     subject,
     html
   });
+  
+  // Mark these items as having had reminders sent
+  if (success) {
+    dueItems.forEach(item => {
+      sentReminders.set(item.id, new Date());
+    });
+    console.log(`Successfully sent reminder for ${dueItems.length} items`);
+  }
+  
+  return success;
 };
 
 // Function to send weekly summary of completed and upcoming content
@@ -396,6 +427,13 @@ export const sendWeeklySummary = async (
 ): Promise<boolean> => {
   if (!emailAddress) {
     console.log('No email address set, skipping weekly summary');
+    return false;
+  }
+  
+  // Check if it's Monday at 8am - appropriate time for weekly summary
+  const now = new Date();
+  if (now.getDay() !== 1 || now.getHours() !== 8) {
+    console.log('Not sending weekly summary - not Monday 8am');
     return false;
   }
   
@@ -429,3 +467,27 @@ export const sendWeeklySummary = async (
     html
   });
 };
+
+// Clear the cached sentReminders map at midnight each day
+const resetSentRemindersAtMidnight = () => {
+  const now = new Date();
+  const night = new Date(
+    now.getFullYear(),
+    now.getMonth(),
+    now.getDate() + 1, // tomorrow
+    0, 0, 0 // midnight
+  );
+  
+  const timeToMidnight = night.getTime() - now.getTime();
+  
+  // Set timeout to clear the map at midnight
+  setTimeout(() => {
+    console.log('Resetting sent reminders tracking at midnight');
+    sentReminders.clear();
+    // Setup the next day's reset
+    resetSentRemindersAtMidnight();
+  }, timeToMidnight);
+};
+
+// Initialize the midnight reset when the module is loaded
+resetSentRemindersAtMidnight();

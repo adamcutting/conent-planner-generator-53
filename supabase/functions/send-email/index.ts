@@ -1,4 +1,3 @@
-
 import { serve } from "https://deno.land/std@0.168.0/http/server.ts";
 
 // CORS headers for cross-origin requests
@@ -7,6 +6,25 @@ const corsHeaders = {
   "Access-Control-Allow-Headers": "authorization, x-client-info, apikey, content-type",
   "Access-Control-Allow-Methods": "POST, OPTIONS",
 };
+
+// Keep track of recent emails to prevent duplicates
+const recentEmails = new Map<string, number>();
+
+// Helper function to create a unique key for an email
+const createEmailKey = (to: string, subject: string): string => {
+  return `${to}-${subject}`;
+};
+
+// Clean up old entries from the recentEmails map every 30 minutes
+const cleanupInterval = setInterval(() => {
+  const now = Date.now();
+  for (const [key, timestamp] of recentEmails.entries()) {
+    // Remove entries older than 12 hours
+    if (now - timestamp > 12 * 60 * 60 * 1000) {
+      recentEmails.delete(key);
+    }
+  }
+}, 30 * 60 * 1000); // 30 minutes
 
 serve(async (req) => {
   // Handle CORS preflight requests
@@ -23,6 +41,29 @@ serve(async (req) => {
     console.log(`Attempting to send email to: ${to}`);
     console.log(`Email subject: ${subject}`);
     console.log(`Email type: ${type}`);
+
+    // Check for duplicate emails in the last hour
+    const emailKey = createEmailKey(to, subject);
+    const now = Date.now();
+    
+    if (recentEmails.has(emailKey)) {
+      const lastSent = recentEmails.get(emailKey);
+      // Don't send the same email if it was sent in the last hour
+      if (lastSent && now - lastSent < 60 * 60 * 1000) {
+        console.log(`Duplicate email prevented: ${to}, ${subject} - last sent ${(now - lastSent) / 1000 / 60} minutes ago`);
+        return new Response(
+          JSON.stringify({ 
+            success: true, 
+            message: "Email skipped - duplicate prevented", 
+            wasDuplicate: true
+          }),
+          {
+            headers: { ...corsHeaders, "Content-Type": "application/json" },
+            status: 200,
+          }
+        );
+      }
+    }
 
     // Use native Deno.SmtpClient for email sending
     const encoder = new TextEncoder();
@@ -102,6 +143,9 @@ serve(async (req) => {
     tlsConn.close();
 
     console.log("Email sent successfully");
+    
+    // Record this email to prevent duplicates
+    recentEmails.set(emailKey, now);
 
     return new Response(
       JSON.stringify({ success: true, message: "Email sent successfully" }),
@@ -120,5 +164,12 @@ serve(async (req) => {
         status: 500,
       }
     );
+  }
+});
+
+// This self-invokes to ensure it's properly handled if the Edge Function is terminated
+self.addEventListener("unload", () => {
+  if (cleanupInterval) {
+    clearInterval(cleanupInterval);
   }
 });

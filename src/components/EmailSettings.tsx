@@ -59,9 +59,14 @@ const EmailSettings: React.FC<EmailSettingsProps> = ({ onClose }) => {
       setIsSaved(true);
       setTimeout(() => setIsSaved(false), 2000);
       
-      if (!window.reminderCheckInterval) {
-        setupReminderChecks();
+      // Clear existing reminder interval if any
+      if (window.reminderCheckInterval) {
+        clearInterval(window.reminderCheckInterval);
+        window.reminderCheckInterval = null;
       }
+      
+      // Setup a more controlled interval - check once per hour
+      setupReminderChecks();
     } else {
       emailSettings.save('', 1, false);
       toast({
@@ -73,6 +78,11 @@ const EmailSettings: React.FC<EmailSettingsProps> = ({ onClose }) => {
         clearInterval(window.reminderCheckInterval);
         window.reminderCheckInterval = null;
       }
+      
+      if (window.weeklySummaryInterval) {
+        clearInterval(window.weeklySummaryInterval);
+        window.weeklySummaryInterval = null;
+      }
     }
   };
   
@@ -81,26 +91,36 @@ const EmailSettings: React.FC<EmailSettingsProps> = ({ onClose }) => {
   };
   
   const setupReminderChecks = () => {
+    // Check for reminders once per hour
     window.reminderCheckInterval = setInterval(() => {
+      console.log('Checking for reminders (hourly check)');
       const settings = emailSettings.get();
       if (settings.email) {
         const contentPlan = loadContentPlan() || [];
         checkAndSendReminders(contentPlan, settings.email, settings.daysBeforeDue);
       }
-    }, 60 * 60 * 1000);
+    }, 60 * 60 * 1000); // Once per hour
     
-    if (!window.weeklySummaryInterval) {
-      window.weeklySummaryInterval = setInterval(() => {
-        const settings = emailSettings.get();
-        if (settings.email && settings.weeklySummary) {
-          const today = new Date();
-          if (today.getDay() === 1) {
-            const contentPlan = loadContentPlan() || [];
-            sendWeeklySummary(contentPlan, settings.email);
-          }
-        }
-      }, 24 * 60 * 60 * 1000);
+    // Run an immediate check
+    const settings = emailSettings.get();
+    if (settings.email) {
+      console.log('Running immediate reminder check after settings save');
+      const contentPlan = loadContentPlan() || [];
+      checkAndSendReminders(contentPlan, settings.email, settings.daysBeforeDue);
     }
+    
+    // For weekly summary, check once per day is sufficient
+    if (window.weeklySummaryInterval) {
+      clearInterval(window.weeklySummaryInterval);
+    }
+    
+    window.weeklySummaryInterval = setInterval(() => {
+      const settings = emailSettings.get();
+      if (settings.email && settings.weeklySummary) {
+        const contentPlan = loadContentPlan() || [];
+        sendWeeklySummary(contentPlan, settings.email);
+      }
+    }, 24 * 60 * 60 * 1000); // Once per day
   };
   
   const handleTestEmail = async () => {

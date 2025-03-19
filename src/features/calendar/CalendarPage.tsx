@@ -116,26 +116,13 @@ const CalendarPage: React.FC = () => {
   useEffect(() => {
     const settings = emailSettings.get();
     if (settings.email) {
+      console.log("Running initial reminder check when content plan loaded/updated");
       checkAndSendReminders(
         contentPlan, 
         settings.email, 
         settings.daysBeforeDue
       );
-      
-      if (window.reminderCheckInterval) {
-        clearInterval(window.reminderCheckInterval);
-      }
-      
-      window.reminderCheckInterval = setInterval(() => {
-        checkAndSendReminders(contentPlan, settings.email, settings.daysBeforeDue);
-      }, 60 * 60 * 1000);
     }
-    
-    return () => {
-      if (window.reminderCheckInterval) {
-        clearInterval(window.reminderCheckInterval);
-      }
-    };
   }, [contentPlan]);
   
   useEffect(() => {
