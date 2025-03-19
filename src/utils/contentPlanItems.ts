@@ -1,4 +1,3 @@
-
 import { supabase } from '@/integrations/supabase/client';
 import { ContentPlanItem } from '@/utils/calendarUtils';
 import { v4 as uuidv4 } from '@/utils/uuid';
@@ -197,7 +196,11 @@ export const addMultipleContentPlanItems = async (
     console.log(`Adding ${items.length} content items for user ${userId} and website ${websiteId}`);
     
     // Convert all items to DB format with proper string due_date
-    const dbItems = items.map(item => contentItemToDbRow(item, userId, websiteId));
+    const dbItems = items.map(item => {
+      const dbItem = contentItemToDbRow(item, userId, websiteId);
+      console.log(`Prepared item for Supabase - ID: ${dbItem.id}, Title: ${dbItem.title}, Date: ${dbItem.due_date}`);
+      return dbItem;
+    });
     
     // Adding debug logs to see what's being sent to Supabase
     console.log('First item being sent to Supabase:', JSON.stringify(dbItems[0]));
@@ -205,17 +208,34 @@ export const addMultipleContentPlanItems = async (
       console.log('Second item being sent to Supabase:', JSON.stringify(dbItems[1]));
     }
     
-    const { error } = await supabase
-      .from('content_plan_items')
-      .insert(dbItems);
+    // Instead of inserting all at once, which might cause issues with large batches,
+    // let's insert in smaller chunks
+    const chunkSize = 5;
+    let success = true;
     
-    if (error) {
-      console.error('Error adding multiple content plan items to Supabase:', error);
-      throw error;
+    for (let i = 0; i < dbItems.length; i += chunkSize) {
+      const chunk = dbItems.slice(i, i + chunkSize);
+      console.log(`Inserting chunk ${Math.floor(i/chunkSize) + 1} of ${Math.ceil(dbItems.length/chunkSize)}, size: ${chunk.length}`);
+      
+      const { error } = await supabase
+        .from('content_plan_items')
+        .insert(chunk);
+      
+      if (error) {
+        console.error(`Error adding chunk ${Math.floor(i/chunkSize) + 1} to Supabase:`, error);
+        success = false;
+        break;
+      }
+      
+      console.log(`Successfully added chunk ${Math.floor(i/chunkSize) + 1} to Supabase`);
     }
     
-    console.log(`Successfully added ${items.length} content plan items to Supabase`);
-    return true;
+    if (success) {
+      console.log(`Successfully added ${items.length} content plan items to Supabase`);
+      return true;
+    } else {
+      return false;
+    }
   } catch (error) {
     console.error('Error in addMultipleContentPlanItems:', error);
     return false;
