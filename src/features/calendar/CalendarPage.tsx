@@ -1,3 +1,4 @@
+
 import React, { useState, useEffect } from 'react';
 import { useToast } from "@/components/ui/use-toast";
 import CalendarTabContent from './CalendarTabContent';
@@ -36,80 +37,82 @@ const CalendarPage: React.FC = () => {
   const [editingContentItem, setEditingContentItem] = useState<ContentPlanItem | undefined>(undefined);
   const [isLoading, setIsLoading] = useState(true);
   
-  useEffect(() => {
-    const loadContent = async () => {
-      setIsLoading(true);
-      
-      if (user && selectedWebsite) {
-        try {
-          console.log("Loading from Supabase for user:", user.id, "website:", selectedWebsite.id);
-          const items = await loadContentPlanItems(user.id, selectedWebsite.id);
-          console.log("Loaded from Supabase:", items.length, "items");
-          
-          if (items.length > 0) {
-            console.log("Sample item loaded from Supabase:", items[0]);
-            if (items.length > 1) {
-              console.log("Second item loaded from Supabase:", items[1]);
-            }
-          }
-          
-          setContentPlan(items);
-        } catch (error) {
-          console.error("Error loading from Supabase:", error);
-          toast({
-            title: "Error loading content",
-            description: "Failed to load content from the database. Trying local storage as fallback.",
-            variant: "destructive"
-          });
-          
-          const savedPlan = loadContentPlanFromStorage();
-          if (savedPlan) {
-            console.log("Fallback to localStorage - loaded:", savedPlan.length, "items");
-            
-            if (savedPlan.length > 0) {
-              console.log("Sample item from localStorage:", savedPlan[0]);
-              if (savedPlan.length > 1) {
-                console.log("Second item from localStorage:", savedPlan[1]);
-              }
-            }
-            
-            setContentPlan(savedPlan);
+  // Function to load content plan data
+  const loadContent = async () => {
+    setIsLoading(true);
+    
+    if (user && selectedWebsite) {
+      try {
+        console.log("Loading from Supabase for user:", user.id, "website:", selectedWebsite.id);
+        const items = await loadContentPlanItems(user.id, selectedWebsite.id);
+        console.log("Loaded from Supabase:", items.length, "items");
+        
+        if (items.length > 0) {
+          console.log("Sample item loaded from Supabase:", items[0]);
+          if (items.length > 1) {
+            console.log("Second item loaded from Supabase:", items[1]);
           }
         }
-      } else {
-        console.log("User not logged in, loading from localStorage");
-        const savedPlan = loadContentPlanFromStorage();
         
-        if (savedPlan && savedPlan.length > 0) {
-          console.log("Loaded from localStorage:", savedPlan.length, "items");
-          console.log("Sample item from localStorage:", savedPlan[0]);
-          if (savedPlan.length > 1) {
-            console.log("Second item from localStorage:", savedPlan[1]);
+        setContentPlan(items);
+      } catch (error) {
+        console.error("Error loading from Supabase:", error);
+        toast({
+          title: "Error loading content",
+          description: "Failed to load content from the database. Trying local storage as fallback.",
+          variant: "destructive"
+        });
+        
+        const savedPlan = loadContentPlanFromStorage();
+        if (savedPlan) {
+          console.log("Fallback to localStorage - loaded:", savedPlan.length, "items");
+          
+          if (savedPlan.length > 0) {
+            console.log("Sample item from localStorage:", savedPlan[0]);
+            if (savedPlan.length > 1) {
+              console.log("Second item from localStorage:", savedPlan[1]);
+            }
           }
           
           setContentPlan(savedPlan);
-        } else {
-          console.log("No saved plan found, generating initial plan");
-          const initialPlan = generateInitialContentPlan();
-          console.log("Generated initial plan with:", initialPlan.length, "items");
-          
-          if (initialPlan.length > 0) {
-            console.log("Sample item from initial plan:", initialPlan[0]);
-            if (initialPlan.length > 1) {
-              console.log("Second item from initial plan:", initialPlan[1]);
-            }
-          }
-          
-          setContentPlan(initialPlan);
-          
-          const saveResult = saveContentPlanToStorage(initialPlan);
-          console.log("Initial plan save result:", saveResult);
         }
       }
+    } else {
+      console.log("User not logged in, loading from localStorage");
+      const savedPlan = loadContentPlanFromStorage();
       
-      setIsLoading(false);
-    };
+      if (savedPlan && savedPlan.length > 0) {
+        console.log("Loaded from localStorage:", savedPlan.length, "items");
+        console.log("Sample item from localStorage:", savedPlan[0]);
+        if (savedPlan.length > 1) {
+          console.log("Second item from localStorage:", savedPlan[1]);
+        }
+        
+        setContentPlan(savedPlan);
+      } else {
+        console.log("No saved plan found, generating initial plan");
+        const initialPlan = generateInitialContentPlan();
+        console.log("Generated initial plan with:", initialPlan.length, "items");
+        
+        if (initialPlan.length > 0) {
+          console.log("Sample item from initial plan:", initialPlan[0]);
+          if (initialPlan.length > 1) {
+            console.log("Second item from initial plan:", initialPlan[1]);
+          }
+        }
+        
+        setContentPlan(initialPlan);
+        
+        const saveResult = saveContentPlanToStorage(initialPlan);
+        console.log("Initial plan save result:", saveResult);
+      }
+    }
     
+    setIsLoading(false);
+  };
+  
+  // Initial load when component mounts or user/website changes
+  useEffect(() => {
     loadContent();
   }, [user, selectedWebsite, toast]);
   
@@ -147,10 +150,8 @@ const CalendarPage: React.FC = () => {
       const success = await updateContentPlanItem(updatedItem, user.id, selectedWebsite.id);
       
       if (success) {
-        const updatedPlan = contentPlan.map(item => 
-          item.id === updatedItem.id ? updatedItem : item
-        );
-        setContentPlan(updatedPlan);
+        // Refresh data from the server to ensure we have the latest
+        await loadContent();
         
         toast({
           description: `${updatedItem.title} ${updatedItem.completed ? 'marked as completed' : 'marked as pending'}`,
@@ -183,8 +184,8 @@ const CalendarPage: React.FC = () => {
       const success = await deleteContentPlanItem(itemId);
       
       if (success) {
-        const updatedPlan = contentPlan.filter(item => item.id !== itemId);
-        setContentPlan(updatedPlan);
+        // Refresh data from the server to ensure we have the latest
+        await loadContent();
         
         toast({
           description: `${itemToDelete.title || 'Item'} deleted from your content plan`,
@@ -225,7 +226,7 @@ const CalendarPage: React.FC = () => {
         id: `new-${Date.now()}`,
         title,
         description: content.slice(0, 100) + (content.length > 100 ? '...' : ''),
-        dueDate: selectedDate.toISOString(),
+        dueDate: selectedDate.toISOString(), // Always use ISO string for consistency
         completed: false,
         contentType: 'blog',
         contentStyle: 'knowledge',
@@ -237,8 +238,8 @@ const CalendarPage: React.FC = () => {
         const addedItem = await addContentPlanItem(newItem, user.id, selectedWebsite.id);
         
         if (addedItem) {
-          const updatedPlan = [...contentPlan, addedItem];
-          setContentPlan(updatedPlan);
+          // Refresh data from the server to ensure we have the latest
+          await loadContent();
           
           toast({
             title: "Content saved",

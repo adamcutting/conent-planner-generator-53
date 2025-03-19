@@ -39,7 +39,7 @@ const CalendarTabContent: React.FC<CalendarTabContentProps> = ({
       title: `New Content Item`,
       description: `Add description`,
       objective: 'Engage with target audience',
-      dueDate: selectedDate.toISOString(),
+      dueDate: selectedDate.toISOString(), // Always use ISO string for consistency
       completed: false,
       contentType: 'blog',
       contentStyle: 'knowledge',
@@ -51,7 +51,8 @@ const CalendarTabContent: React.FC<CalendarTabContentProps> = ({
       const addedItem = await addContentPlanItem(newItem, user.id, selectedWebsite.id);
       
       if (addedItem) {
-        setContentPlan([...contentPlan, addedItem]);
+        // Update state with the returned item from the database
+        setContentPlan(prevPlan => [...prevPlan, addedItem]);
         
         toast({
           description: "New content item added to your plan",
@@ -65,7 +66,7 @@ const CalendarTabContent: React.FC<CalendarTabContentProps> = ({
       }
     } else {
       // Fallback to local save only
-      setContentPlan([...contentPlan, newItem]);
+      setContentPlan(prevPlan => [...prevPlan, newItem]);
       
       toast({
         description: "New content item added to your plan",

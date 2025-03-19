@@ -10,7 +10,7 @@ const dbRowToContentItem = (row: any): ContentPlanItem => {
     title: row.title,
     description: row.description || '',
     objective: row.objective || '',
-    dueDate: row.due_date.toISOString ? row.due_date.toISOString() : row.due_date,
+    dueDate: row.due_date, // Store as ISO string
     completed: row.completed || false,
     contentType: row.content_type,
     contentStyle: row.content_style,
@@ -32,7 +32,7 @@ const contentItemToDbRow = (item: ContentPlanItem, userId: string, websiteId: st
     title: item.title,
     description: item.description || '',
     objective: item.objective || '',
-    due_date: dueDate, // Use the string format now
+    due_date: dueDate, // Use the string format for Supabase
     completed: item.completed || false,
     content_type: item.contentType,
     content_style: item.contentStyle,
@@ -177,7 +177,7 @@ export const addMultipleContentPlanItems = async (
     
     console.log(`Adding ${items.length} content items for user ${userId} and website ${websiteId}`);
     
-    // Convert all items to DB format
+    // Convert all items to DB format with proper string due_date
     const dbItems = items.map(item => contentItemToDbRow(item, userId, websiteId));
     
     const { error } = await supabase
