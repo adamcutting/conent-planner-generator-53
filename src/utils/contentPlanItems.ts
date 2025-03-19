@@ -1,4 +1,3 @@
-
 import { supabase } from '@/integrations/supabase/client';
 import { ContentPlanItem } from '@/utils/calendarUtils';
 import { v4 as uuidv4 } from '@/utils/uuid';
@@ -43,16 +42,13 @@ const contentItemToDbRow = (item: ContentPlanItem, userId: string, websiteId: st
       dueDate = new Date().toISOString(); // Fallback to current date
     }
   }
-      
-  // Generate a valid UUID for the item
-  // Important: Always generate a new UUID for all content plan items
-  // This fixes the "invalid input syntax for type uuid" error
-  const id = uuidv4();
   
-  console.log(`Item ID conversion: Original "${item.id}" -> New "${id}"`);
+  // For existing items with valid UUIDs we keep the ID, for new items we don't include an ID
+  // so Supabase will generate one for us
+  const isValidUuid = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i.test(item.id);
   
-  return {
-    id: id,
+  // The base object without an ID
+  const baseObject = {
     user_id: userId,
     website_id: websiteId,
     title: item.title,
@@ -64,6 +60,18 @@ const contentItemToDbRow = (item: ContentPlanItem, userId: string, websiteId: st
     content_style: item.contentStyle,
     keywords: item.keywords || []
   };
+  
+  // Only include ID if it's a valid UUID and we're doing an update operation
+  if (isValidUuid) {
+    console.log(`Using existing valid UUID: ${item.id}`);
+    return {
+      id: item.id,
+      ...baseObject
+    };
+  }
+  
+  console.log(`No ID provided or invalid UUID: ${item.id} - Supabase will generate one`);
+  return baseObject;
 };
 
 // Load all content plan items for a user and website
@@ -110,11 +118,15 @@ export const addContentPlanItem = async (
   try {
     console.log(`Adding content item for user ${userId} and website ${websiteId}:`, item.title);
     
+    // Convert to DB format but remove the ID field to let Supabase generate it
     const dbItem = contentItemToDbRow(item, userId, websiteId);
+    
+    // Remove the id field when inserting a new item
+    const { id, ...insertData } = dbItem;
     
     const { data, error } = await supabase
       .from('content_plan_items')
-      .insert(dbItem)
+      .insert(insertData)
       .select()
       .single();
     
@@ -211,13 +223,13 @@ export const addMultipleContentPlanItems = async (
     
     console.log(`Adding ${items.length} content items for user ${userId} and website ${websiteId}`);
     
-    // First convert from items in GeneratePlanPage format 
-    // to proper Supabase format with valid UUIDs
+    // Convert items to proper Supabase format but remove IDs to let Supabase generate them
     const dbItems = items.map(item => {
-      // Always generate a new UUID for each item
       const dbItem = contentItemToDbRow(item, userId, websiteId);
-      console.log(`Prepared item for Supabase - ID: ${dbItem.id}, Title: ${dbItem.title}, Date: ${dbItem.due_date}`);
-      return dbItem;
+      // Remove the id field for each item
+      const { id, ...insertData } = dbItem;
+      console.log(`Prepared item for Supabase - Title: ${insertData.title}, Date: ${insertData.due_date}`);
+      return insertData;
     });
     
     // Adding debug logs to see what's being sent to Supabase
@@ -234,12 +246,9 @@ export const addMultipleContentPlanItems = async (
       const chunk = dbItems.slice(i, i + chunkSize);
       console.log(`Inserting chunk ${Math.floor(i/chunkSize) + 1} of ${Math.ceil(dbItems.length/chunkSize)}, size: ${chunk.length}`);
       
-      // For each item, omit the id field to let Supabase generate it
-      const insertData = chunk.map(({ id, ...rest }) => rest);
-      
       const { error } = await supabase
         .from('content_plan_items')
-        .insert(insertData);
+        .insert(chunk);
       
       if (error) {
         console.error(`Error adding chunk ${Math.floor(i/chunkSize) + 1} to Supabase:`, error);
