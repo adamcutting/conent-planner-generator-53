@@ -45,10 +45,9 @@ const contentItemToDbRow = (item: ContentPlanItem, userId: string, websiteId: st
   }
       
   // Generate a valid UUID for the item
-  // Important: Always generate a new UUID for items with string IDs that aren't valid UUIDs
+  // Important: Always generate a new UUID for all content plan items
   // This fixes the "invalid input syntax for type uuid" error
-  const isValidUuid = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i.test(item.id);
-  const id = isValidUuid ? item.id : uuidv4();
+  const id = uuidv4();
   
   console.log(`Item ID conversion: Original "${item.id}" -> New "${id}"`);
   
@@ -212,8 +211,10 @@ export const addMultipleContentPlanItems = async (
     
     console.log(`Adding ${items.length} content items for user ${userId} and website ${websiteId}`);
     
-    // Convert all items to DB format with proper string due_date and valid UUIDs
+    // First convert from items in GeneratePlanPage format 
+    // to proper Supabase format with valid UUIDs
     const dbItems = items.map(item => {
+      // Always generate a new UUID for each item
       const dbItem = contentItemToDbRow(item, userId, websiteId);
       console.log(`Prepared item for Supabase - ID: ${dbItem.id}, Title: ${dbItem.title}, Date: ${dbItem.due_date}`);
       return dbItem;
@@ -225,8 +226,7 @@ export const addMultipleContentPlanItems = async (
       console.log('Second item being sent to Supabase:', JSON.stringify(dbItems[1]));
     }
     
-    // Instead of inserting all at once, which might cause issues with large batches,
-    // let's insert in smaller chunks
+    // Use smaller chunks to reduce payload size
     const chunkSize = 5;
     let success = true;
     
@@ -234,9 +234,12 @@ export const addMultipleContentPlanItems = async (
       const chunk = dbItems.slice(i, i + chunkSize);
       console.log(`Inserting chunk ${Math.floor(i/chunkSize) + 1} of ${Math.ceil(dbItems.length/chunkSize)}, size: ${chunk.length}`);
       
+      // For each item, omit the id field to let Supabase generate it
+      const insertData = chunk.map(({ id, ...rest }) => rest);
+      
       const { error } = await supabase
         .from('content_plan_items')
-        .insert(chunk);
+        .insert(insertData);
       
       if (error) {
         console.error(`Error adding chunk ${Math.floor(i/chunkSize) + 1} to Supabase:`, error);
