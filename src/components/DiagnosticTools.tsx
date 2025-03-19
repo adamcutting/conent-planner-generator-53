@@ -26,18 +26,18 @@ export const StorageDebugger = () => {
       {
         id: 'test-1',
         title: 'Test Item 1',
-        content_type: 'blog',
-        content_style: 'informative',
-        due_date: new Date().toISOString(),
+        contentType: 'blog',
+        contentStyle: 'informative',
+        dueDate: new Date().toISOString(),
         website_id: 'test',
         user_id: 'test-user'
       },
       {
         id: 'test-2',
         title: 'Test Item 2',
-        content_type: 'social',
-        content_style: 'casual',
-        due_date: new Date().toISOString(),
+        contentType: 'social',
+        contentStyle: 'casual',
+        dueDate: new Date().toISOString(),
         website_id: 'test',
         user_id: 'test-user'
       }
